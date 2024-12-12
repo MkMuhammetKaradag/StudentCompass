@@ -2,6 +2,71 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type User {
+  _id: ID!
+  firstName: String!
+  lastName: String!
+  userName: String!
+  email: String!
+  profilePhoto: String
+  roles: [UserRole!]!
+  coachedStudents: [User!]
+  coach: User
+  academicLevel: String
+  interests: [String!]
+  expertise: String
+  maxStudents: Float!
+  bio: String
+  isDeleted: Boolean!
+  deletedAt: String
+  createdAt: String!
+  updatedAt: String!
+  status: Boolean!
+}
+
+"""User roles"""
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+  USER
+}
+
+type SignUpObject {
+  activationToken: String!
+}
+
+type SignInObject {
+  user: User
+  access_token: String!
+  refresh_token: String!
+}
+
 type Query {
   gethello: String!
+}
+
+type Mutation {
+  signUp(input: SignUpInput!): SignUpObject!
+  activationUser(input: ActivationUserInput!): User!
+  signIn(input: SignInput!): SignInObject!
+}
+
+input SignUpInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  userName: String!
+  password: String!
+  roles: [UserRole!]! = [USER]
+}
+
+input ActivationUserInput {
+  activationToken: String!
+  activationCode: String!
+}
+
+input SignInput {
+  email: String!
+  password: String!
 }

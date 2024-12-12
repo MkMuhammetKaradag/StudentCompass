@@ -1,6 +1,12 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SharedService } from '@app/shared';
+import {
+  ActivationUserInput,
+  AuthCommands,
+  SharedService,
+  SignInput,
+  SignUpInput,
+} from '@app/shared';
 import {
   ClientProxy,
   Ctx,
@@ -8,11 +14,7 @@ import {
   Payload,
   RmqContext,
 } from '@nestjs/microservices';
-export class LoginUserInput {
-  email: string;
 
-  password: string;
-}
 @Controller()
 export class AuthController {
   constructor(
@@ -23,27 +25,52 @@ export class AuthController {
     private readonly sharedService: SharedService,
   ) {}
 
-  @MessagePattern({
-    cmd: 'login_user',
-  })
-  async loginUser(
-    @Ctx() context: RmqContext,
-    @Payload() loginUser: LoginUserInput,
-  ) {
-    console.log('kuyruk çalıştı geldi');
+  /**
+   * Handle the message and process the business logic.
+   * Automatically acknowledges the message.
+   */
+  private async handleMessage<T>(
+    context: RmqContext,
+    handler: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      // Acknowledge the message
+      this.sharedService.acknowledgeMessage(context);
 
-    this.emailService.emit(
-      {
-        cmd: 'send_email',
-      },
-      {
-        email: 'test@test.com',
-        activation_code: '3214',
-      },
+      // Execute the handler and return the result
+      return await handler();
+    } catch (error) {
+      // Log error and rethrow to propagate it back to the message broker
+      console.error('Error processing message:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle user signup.
+   */
+  @MessagePattern({ cmd: AuthCommands.SIGN_UP })
+  async signUp(@Ctx() context: RmqContext, @Payload() input: SignUpInput) {
+    return this.handleMessage(context, () => this.authService.signUp(input));
+  }
+  /**
+   * Handle user signin.
+   */
+  @MessagePattern({ cmd: AuthCommands.SIGN_IN })
+  async signIn(@Ctx() context: RmqContext, @Payload() input: SignInput) {
+    return this.handleMessage(context, () => this.authService.signIn(input));
+  }
+
+  /**
+   * Handle user activation.
+   */
+  @MessagePattern({ cmd: AuthCommands.ACTIVATE_USER })
+  async activationUser(
+    @Ctx() context: RmqContext,
+    @Payload() input: ActivationUserInput,
+  ) {
+    return this.handleMessage(context, () =>
+      this.authService.activationUser(input),
     );
-    this.sharedService.acknowledgeMessage(context);
-    console.log('return ');
-    // const data = this.authService.loginUser(loginUser);
-    return 'data';
   }
 }
