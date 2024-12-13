@@ -73,4 +73,23 @@ export class AuthController {
       this.authService.activationUser(input),
     );
   }
+
+  @MessagePattern({ cmd: AuthCommands.VERIFY_ACCESS_TOKEN })
+  async verifyAcccessToken(
+    @Ctx() context: RmqContext,
+    @Payload() input: string,
+  ) {
+    return this.handleMessage(context, () =>
+      this.authService.verifyAcccessToken(input),
+    );
+  }
+  @MessagePattern({ cmd: AuthCommands.REFRESH_ACCESS_TOKEN })
+  async refreshAccessToken(
+    @Ctx() context: RmqContext,
+    @Payload() input: string,
+  ) {
+    return this.handleMessage(context, () =>
+      this.authService.refreshAccessToken(input),
+    );
+  }
 }

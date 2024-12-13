@@ -1,13 +1,16 @@
 import {
   ActivationUserInput,
   AuthCommands,
+  AuthGuard,
+  AuthUser,
+  CurrentUser,
   SignInObject,
   SignInput,
   SignUpInput,
   SignUpObject,
   User,
 } from '@app/shared';
-import { HttpStatus, Inject } from '@nestjs/common';
+import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
 import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { GraphQLError } from 'graphql';
@@ -103,7 +106,9 @@ export class AuthResolver {
   }
 
   @Query(() => String)
-  async gethello() {
+  @UseGuards(AuthGuard)
+  async gethello(@CurrentUser() user: AuthUser) {
+    console.log(user);
     return 'hello';
   }
 }

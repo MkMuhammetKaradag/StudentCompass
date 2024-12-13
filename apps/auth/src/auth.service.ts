@@ -234,4 +234,64 @@ export class AuthService {
       );
     }
   }
+
+  async verifyAcccessToken(jwt: string) {
+    if (!jwt) {
+      this.handleError('Invalid credentials!', HttpStatus.UNAUTHORIZED);
+    }
+    try {
+      const { email, sub, exp, roles } = await this.jwtHelper.verifyToken(jwt);
+
+      return {
+        user: {
+          _id: sub,
+          email: email,
+          roles: roles,
+        },
+        exp,
+      };
+    } catch (error) {
+      this.handleError(
+        'Failed to verift accesstoken',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+      );
+    }
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      const payload = await this.jwtHelper.verifyToken(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+      console.log('access token için girdi');
+
+      const user = await this.userModel
+        .findById(payload.sub)
+        .select('email _id roles');
+
+      if (!user) {
+        this.handleError('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+      }
+      const access_token = await this.jwtHelper.signToken({
+        email: user.email,
+        sub: user._id,
+        roles: user.roles,
+      });
+      return {
+        user: {
+          _id: user._id,
+          email: user.email,
+          roles: user.roles,
+        },
+        access_token,
+      };
+    } catch (error) {
+      this.handleError(
+        'Failed to verift accesstoken',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+      );
+    }
+  }
 }
