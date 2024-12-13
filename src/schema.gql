@@ -44,6 +44,7 @@ type SignInObject {
 
 type Query {
   gethello: String!
+  me: String!
 }
 
 type Mutation {

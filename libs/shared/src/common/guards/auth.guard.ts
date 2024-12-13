@@ -19,7 +19,13 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const { request, response } = this.getRequestResponse(context);
+
     const jwt = request.cookies['access_token'];
+    // console.log(request);
+    if (request?.session?.context) {
+      const sessionData = request.session.context;
+      // console.log('sessionData', sessionData);
+    }
     if (!jwt) {
       return this.handleUnauthorized(request, response);
     }

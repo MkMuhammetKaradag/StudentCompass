@@ -5,10 +5,18 @@ import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { GraphQLError } from 'graphql';
 import * as cookieParser from 'cookie-parser';
+import { RedisService } from '@app/shared';
+import * as session from 'express-session';
+import { sessionConfig } from '@app/shared/config/redis.config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
-  app.use(cookieParser());
+  // const redisService = app.get(RedisService);
+  const SECRET = configService.get<string>('SESSION_SECRET');
+
+  // // app.use(session(redisService.instance));
+  app.use(cookieParser(SECRET));
+  app.use(session(sessionConfig));
   app.useGlobalPipes(
     new ValidationPipe({
       exceptionFactory: (errors: ValidationError[]) => {

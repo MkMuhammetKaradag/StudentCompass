@@ -31,5 +31,10 @@ export * from './schemas/user.schema';
 
 //Common
 export * from './common/guards/auth.guard';
+export * from './common/guards/auth.gqlguard';
 export * from './common/decorators/user.decorator';
 //Common End
+
+// export * from './common/middleware/session.middleware';
+export * from './modules/redis.module';
+export * from './services/redis.service';

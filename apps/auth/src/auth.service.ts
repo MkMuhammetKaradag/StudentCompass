@@ -1,5 +1,6 @@
 import {
   ActivationUserInput,
+  RedisService,
   SignInput,
   SignUpInput,
   User,
@@ -25,6 +26,7 @@ export class AuthService {
     // private readonly jwtService: JwtService,
     private readonly passwordService: PasswordService,
     private readonly jwtHelper: JwtHelperService,
+    private redisService: RedisService,
   ) {}
   private handleError(
     message: string,

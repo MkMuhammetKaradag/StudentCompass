@@ -1,7 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { parseCookies, SharedModule } from '@app/shared';
+import {
+  parseCookies,
+  RedisModule,
+  RedisService,
+  SharedModule,
+} from '@app/shared';
 import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -9,6 +14,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { AuthResolver } from './resolvers/auth.resolver';
 @Module({
   imports: [
+    RedisModule,
     SharedModule.registerRmq('AUTH_SERVICE', 'AUTH'),
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
     GraphQLModule.forRootAsync({
@@ -25,7 +31,9 @@ import { AuthResolver } from './resolvers/auth.resolver';
           if (connection) {
             return { req: connection.context, res };
           }
-          return { req, res };
+          // console.log('app.module:', req.session);
+          return { req, res, session: req.session };
+          // return { req, res };
         },
         subscriptions: {
           'graphql-ws': true,
