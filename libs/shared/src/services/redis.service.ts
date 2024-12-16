@@ -2,6 +2,7 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import IoRedis, { Redis } from 'ioredis';
 import { redisClient } from '../config/redis.config';
+import { User } from '../schemas/user.schema';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
@@ -15,9 +16,9 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  async get(key: string): Promise<any> {
-    const value = await this.redis.get(key);
-    return value ? JSON.parse(value) : null;
+  async get<T>(key: string): Promise<T | null> {
+    const data = await this.redis.get(key);
+    return data ? JSON.parse(data) : null;
   }
 
   async del(key: string): Promise<void> {
@@ -30,8 +31,16 @@ export class RedisService implements OnModuleDestroy {
   }
 
   // Session için özel metodlar
-  async getSession(sessionId: string): Promise<any> {
-    return this.get(`sess:${sessionId}`);
+  async getSession(sessionId: string, userAgent: string): Promise<any> {
+    const session = await this.get<{
+      user: User;
+      userAgent: string;
+      loggedInAt: string;
+    }>(`sess:${sessionId}`);
+    // if (session.userAgent != userAgent) {
+    //   throw new Error('Session device mismatch');
+    // }
+    return session;
   }
 
   async setSession(sessionId: string, data: any, ttl: number): Promise<void> {

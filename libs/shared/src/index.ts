@@ -22,6 +22,7 @@ export * from './Type/request/user';
 
 //Module
 export * from './modules/mongodb.module';
+export * from './modules/pubSub.module';
 //Module End
 
 //Schema
@@ -38,3 +39,5 @@ export * from './common/decorators/user.decorator';
 // export * from './common/middleware/session.middleware';
 export * from './modules/redis.module';
 export * from './services/redis.service';
+
+

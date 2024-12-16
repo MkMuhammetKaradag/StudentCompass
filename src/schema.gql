@@ -42,6 +42,11 @@ type SignInObject {
   refresh_token: String!
 }
 
+type ChangeUserStatusObject {
+  userId: ID!
+  status: Boolean!
+}
+
 type Query {
   gethello: String!
   me: String!
@@ -51,6 +56,7 @@ type Mutation {
   signUp(input: SignUpInput!): SignUpObject!
   activationUser(input: ActivationUserInput!): User!
   signIn(input: SignInput!): SignInObject!
+  updateUserStatus(status: Boolean!): Boolean!
 }
 
 input SignUpInput {
@@ -70,4 +76,8 @@ input ActivationUserInput {
 input SignInput {
   email: String!
   password: String!
+}
+
+type Subscription {
+  changeUserStatus(userId: String!): ChangeUserStatusObject!
 }

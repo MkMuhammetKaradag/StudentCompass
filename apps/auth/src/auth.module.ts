@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import {
   MongoDBModule,
+  PubSubModule,
   RedisModule,
   SharedModule,
   SharedService,
@@ -18,6 +19,7 @@ import { JwtHelperService } from './jwtHelper.service';
 @Module({
   imports: [
     RedisModule,
+    PubSubModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

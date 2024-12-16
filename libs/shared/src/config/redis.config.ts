@@ -27,7 +27,7 @@ export const sessionConfig = {
   secret: 'secret',
   resave: false,
   saveUninitialized: false,
-  name: 'asd',
+  name: 'session_id',
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,

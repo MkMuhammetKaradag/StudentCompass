@@ -9,42 +9,91 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '@app/shared/Type/request/authenticatedRequest';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { RedisService } from '@app/shared/services/redis.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     @Inject('AUTH_SERVICE')
     private readonly authService: ClientProxy,
+    private redisService: RedisService,
   ) {}
+  private getClientIp(req: Request): string | null {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    if (isDevelopment) {
+      return '127.0.0.1';
+    }
 
+    // x-forwarded-for öncelikli olarak kontrol edilir
+    const xForwardedFor = req.headers['x-forwarded-for'];
+    if (xForwardedFor) {
+      return Array.isArray(xForwardedFor)
+        ? xForwardedFor[0].split(',')[0].trim()
+        : xForwardedFor.split(',')[0].trim();
+    }
+
+    // Güncel ve desteklenen IP alma yöntemleri
+    const ipOptions = [req.ip, req.socket?.remoteAddress];
+
+    for (const ip of ipOptions) {
+      if (ip && ip !== '::1' && ip !== '127.0.0.1') {
+        return ip;
+      }
+    }
+
+    return null;
+  }
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const { request, response } = this.getRequestResponse(context);
-
-    const jwt = request.cookies['access_token'];
-    // console.log(request);
-    if (request?.session?.context) {
-      const sessionData = request.session.context;
-      // console.log('sessionData', sessionData);
-    }
-    if (!jwt) {
-      return this.handleUnauthorized(request, response);
-    }
-
     try {
-      const { user, exp } = await firstValueFrom(
-        this.authService.send({ cmd: 'verify_access_token' }, jwt),
-      );
-      const TOKEN_EXP_MS = exp * 1000;
+      const sessionId = request.cookies['session_id'];
 
-      if (Date.now() < TOKEN_EXP_MS) {
-        request.user = user;
-        return true;
-      } else {
-        return this.refreshToken(request, response);
+      if (!sessionId) {
+        return false;
       }
+      const data = await this.redisService.getSession(sessionId, 'user-agent');
+
+      if (!data.user) {
+        return false;
+      }
+
+      const currentClientIp = this.getClientIp(request);
+      console.log(data.clientIp, currentClientIp);
+      if (currentClientIp != data.clientIp) {
+        return false;
+      }
+      request.user = data.user;
+      console.log('return true');
+      return true;
     } catch (error) {
-      return this.refreshToken(request, response);
+      console.error(error);
+      return false;
     }
+
+    // const jwt = request.cookies['access_token'];
+
+    // if (request?.session?.context) {
+    //   const sessionData = request.session.context;
+    // }
+    // if (!jwt) {
+    //   return this.handleUnauthorized(request, response);
+    // }
+
+    // try {
+    //   const { user, exp } = await firstValueFrom(
+    //     this.authService.send({ cmd: 'verify_access_token' }, jwt),
+    //   );
+    //   const TOKEN_EXP_MS = exp * 1000;
+
+    //   if (Date.now() < TOKEN_EXP_MS) {
+    //     request.user = user;
+    //     return true;
+    //   } else {
+    //     return this.refreshToken(request, response);
+    //   }
+    // } catch (error) {
+    //   return this.refreshToken(request, response);
+    // }
   }
 
   private getRequestResponse(context: ExecutionContext) {

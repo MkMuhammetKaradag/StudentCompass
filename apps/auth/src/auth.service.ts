@@ -1,5 +1,6 @@
 import {
   ActivationUserInput,
+  PUB_SUB,
   RedisService,
   SignInput,
   SignUpInput,
@@ -7,7 +8,7 @@ import {
   UserDocument,
   UserRole,
 } from '@app/shared';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -15,6 +16,7 @@ import { GraphQLError } from 'graphql';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordService } from './password.service';
 import { JwtHelperService } from './jwtHelper.service';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 const BCRYPT_SALT_ROUNDS = 12;
 const ACTIVATION_CODE_LENGTH = 4;
 const ACTIVATION_TOKEN_EXPIRY = '5m';
@@ -27,6 +29,7 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly jwtHelper: JwtHelperService,
     private redisService: RedisService,
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
   private handleError(
     message: string,
@@ -291,6 +294,31 @@ export class AuthService {
     } catch (error) {
       this.handleError(
         'Failed to verift accesstoken',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+      );
+    }
+  }
+
+  async changeUserStatus(input: { userId: string; status: boolean }) {
+    try {
+      const user = await this.userModel.findById(input.userId);
+      if (!user) {
+        this.handleError('Invalid user id', HttpStatus.UNAUTHORIZED);
+      }
+      user.status = input.status;
+      await user.save();
+
+      this.pubSub.publish('changeUserStatus', {
+        changeUserStatus: {
+          userId: input.userId,
+          status: input.status,
+        },
+      });
+      return true;
+    } catch (error) {
+      this.handleError(
+        'Failed to change user status',
         HttpStatus.INTERNAL_SERVER_ERROR,
         error,
       );

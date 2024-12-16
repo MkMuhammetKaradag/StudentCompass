@@ -5,6 +5,7 @@ import {
   AuthUser,
   CurrentUser,
   GqlAuthGuard,
+  PUB_SUB,
   RedisService,
   SignInObject,
   SignInput,
@@ -13,17 +14,30 @@ import {
   User,
 } from '@app/shared';
 import { HttpStatus, Inject, Session, UseGuards } from '@nestjs/common';
-import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Context,
+  Subscription,
+} from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { GraphQLError } from 'graphql';
 import { firstValueFrom } from 'rxjs';
 import { Session as SessionDoc } from 'express-session';
+import { ChangeUserStatusObject } from '../types/Auth/Object/ChangeUserStatusObject';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { Request } from 'express';
+const CHANGE_USER_STATUS = 'changeUserStatus';
+
 @Resolver('auth')
 export class AuthResolver {
   constructor(
     @Inject('AUTH_SERVICE')
     private readonly authService: ClientProxy,
     private redisService: RedisService,
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
 
   /**
@@ -31,7 +45,7 @@ export class AuthResolver {
    */
   private setCookies(
     res: any,
-    tokens: { refreshToken?: string; accessToken?: string },
+    tokens: { refreshToken?: string; accessToken?: string; sessionId?: string },
   ): void {
     const options = {
       httpOnly: true,
@@ -44,6 +58,14 @@ export class AuthResolver {
     }
     if (tokens.accessToken) {
       res.cookie('access_token', tokens.accessToken, options);
+    }
+    if (tokens.sessionId) {
+      res.cookie('session_id', tokens.sessionId, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict', // CSRF koruması
+        maxAge: 1000 * 60 * 60 * 24, // 1 gün
+      });
     }
   }
   private async sendCommand<T>(cmd: AuthCommands, payload: any): Promise<T> {
@@ -70,6 +92,31 @@ export class AuthResolver {
       },
     });
   }
+  private getClientIp(req: Request): string | null {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    if (isDevelopment) {
+      return '127.0.0.1';
+    }
+
+    // x-forwarded-for öncelikli olarak kontrol edilir
+    const xForwardedFor = req.headers['x-forwarded-for'];
+    if (xForwardedFor) {
+      return Array.isArray(xForwardedFor)
+        ? xForwardedFor[0].split(',')[0].trim()
+        : xForwardedFor.split(',')[0].trim();
+    }
+
+    // Güncel ve desteklenen IP alma yöntemleri
+    const ipOptions = [req.ip, req.socket?.remoteAddress];
+
+    for (const ip of ipOptions) {
+      if (ip && ip !== '::1' && ip !== '127.0.0.1') {
+        return ip;
+      }
+    }
+
+    return null;
+  }
 
   // Register User
   @Mutation(() => SignUpObject)
@@ -91,29 +138,35 @@ export class AuthResolver {
     @Context() context,
     // @Session() session: SessionDoc,
   ): Promise<SignInObject> {
-    const { req, res, session } = context;
+    const { req, res } = context;
     try {
+      const userAgent = req.headers['user-agent'];
+      const clientIp = this.getClientIp(req);
+
       const data = await this.sendCommand<SignInObject>(
         AuthCommands.SIGN_IN,
         input,
       );
-      session.context = {
-        id: data.user._id,
-        email: data.user.email,
-        userNickName: data.user.userName,
-      };
-      const sessionId = context.req.sessionID;
+      const sessionId = data.user._id;
       await this.redisService.setSession(
         sessionId,
         {
-          user: data.user,
-          token: data.access_token,
+          user: {
+            _id: data.user._id,
+            email: data.user.email,
+            firstName: data.user.firstName,
+            roles: data.user.roles,
+          },
+          userAgent,
+          clientIp,
+          loggedInAt: new Date().toISOString(),
         },
         24 * 60 * 60,
       );
       this.setCookies(res, {
-        refreshToken: data.refresh_token,
-        accessToken: data.access_token,
+        // refreshToken: data.refresh_token,
+        // accessToken: data.access_token,
+        sessionId: sessionId,
       });
       return data;
     } catch (error) {
@@ -133,10 +186,47 @@ export class AuthResolver {
 
   @Query(() => String)
   @UseGuards(AuthGuard)
-  async me(@Context() context) {
+  async me(@Context() context, @CurrentUser() user: any) {
     const sessionId = context.req.sessionID;
+    console.log(user);
+    // console.log('session-redis', await this.redisService.getSession(sessionId));
+    // console.log(context.session);
 
-    console.log('session-redis', await this.redisService.getSession(sessionId));
     return ' context.req.session.user';
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(AuthGuard)
+  async updateUserStatus(
+    @Args('status') status: boolean,
+    @CurrentUser() user: AuthUser,
+  ): Promise<boolean> {
+    const data = await this.sendCommand<boolean>(
+      AuthCommands.CHANGE_USER_STATUS,
+      {
+        userId: user._id,
+        status,
+      },
+    );
+
+    return data;
+  }
+
+  @UseGuards(AuthGuard)
+  @Subscription(() => ChangeUserStatusObject, {
+    filter: async function (payload, variables, context) {
+      const { req, res, session } = context;
+      // console.log(session);
+      // console.log(req);
+      // console.log(session);
+      if (!req?.user) {
+        this.handleError('user not found', HttpStatus.NOT_FOUND);
+      }
+
+      return payload.changeUserStatus.userId == variables.userId;
+    },
+  })
+  changeUserStatus(@Args('userId') userId: string) {
+    return this.pubSub.asyncIterator(CHANGE_USER_STATUS);
   }
 }

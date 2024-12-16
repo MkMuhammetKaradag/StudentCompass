@@ -92,4 +92,14 @@ export class AuthController {
       this.authService.refreshAccessToken(input),
     );
   }
+
+  @MessagePattern({ cmd: AuthCommands.CHANGE_USER_STATUS })
+  async changeUserStatus(@Ctx() context: RmqContext, @Payload() input: {
+    userId: string
+    status: boolean
+  }) {
+    return this.handleMessage(context, () =>
+      this.authService.changeUserStatus(input),
+    );
+  }
 }
