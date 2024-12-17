@@ -58,11 +58,6 @@ type SignUpObject {
   activationToken: String!
 }
 
-type ChangeUserStatusObject {
-  userId: ID!
-  status: Boolean!
-}
-
 type Query {
   gethello: String!
   me: User!
@@ -72,7 +67,7 @@ type Mutation {
   signUp(input: SignUpInput!): SignUpObject!
   activationUser(input: ActivationUserInput!): User!
   signIn(input: SignInput!): User!
-  updateUserStatus(status: Boolean!): Boolean!
+  logout: String!
   sendCoachingRequest(input: SendCoachingRequestInput!): CoachingRequest!
   updateCoachingRequestStatus(input: UpdateCoachingRequestInput!): CoachingRequest!
 }
@@ -104,8 +99,4 @@ input SendCoachingRequestInput {
 input UpdateCoachingRequestInput {
   requestId: String
   status: CoachingRequestStatus!
-}
-
-type Subscription {
-  changeUserStatus(userId: String!): ChangeUserStatusObject!
 }

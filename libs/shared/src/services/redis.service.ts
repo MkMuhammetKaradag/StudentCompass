@@ -47,6 +47,9 @@ export class RedisService implements OnModuleDestroy {
     await this.set(`sess:${sessionId}`, data, ttl);
   }
 
+  async logoutSession(sessionId: string): Promise<void> {
+    await this.del(`sess:${sessionId}`);
+  }
   async onModuleDestroy() {
     await this.redis.quit();
   }

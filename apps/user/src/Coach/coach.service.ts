@@ -2,10 +2,8 @@ import {
   CoachingRequest,
   CoachingRequestDocument,
   CoachingRequestStatus,
-  SendCoachingRequestInput,
   User,
   UserDocument,
-  WithCurrentUserId,
 } from '@app/shared';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
@@ -44,14 +42,13 @@ export class CoachService {
         { status },
         { new: true },
       );
-      console.log(request);
 
       if (!request) {
         this.handleError('Coaching request not found', HttpStatus.NOT_FOUND);
       }
       if (status === CoachingRequestStatus.ACCEPTED) {
         await this.userModel.findByIdAndUpdate(request.coach, {
-          $push: { coachedStudents: request.student },
+          $addToSet: { coachedStudents: request.student },
         });
       }
 

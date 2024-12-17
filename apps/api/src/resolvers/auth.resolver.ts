@@ -27,7 +27,7 @@ import { GraphQLError } from 'graphql';
 import { firstValueFrom } from 'rxjs';
 import { ChangeUserStatusObject } from '../types/Auth/Object/ChangeUserStatusObject';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 const CHANGE_USER_STATUS = 'changeUserStatus';
@@ -145,10 +145,7 @@ export class AuthResolver {
     const userAgent = req.headers['user-agent'];
     const clientIp = this.getClientIp(req);
 
-    const data = await this.sendCommand<User>(
-      AuthCommands.SIGN_IN,
-      input,
-    );
+    const data = await this.sendCommand<User>(AuthCommands.SIGN_IN, input);
     const sessionId = data._id;
     await this.redisService.setSession(
       sessionId,
@@ -186,38 +183,60 @@ export class AuthResolver {
     return user;
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => String)
   @UseGuards(AuthGuard)
-  async updateUserStatus(
-    @Args('status') status: boolean,
+  async logout(
+    @Context() context: { res: Response },
     @CurrentUser() user: AuthUser,
-  ): Promise<boolean> {
-    const data = await this.sendCommand<boolean>(
-      AuthCommands.CHANGE_USER_STATUS,
-      {
-        userId: user._id,
-        status,
-      },
-    );
-
-    return data;
+  ) {
+    const { res } = context;
+    try {
+      await this.redisService.logoutSession(user._id);
+      res.clearCookie('session_id', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+      });
+      // await this.userService.updateUserStatus(user._id, 'offline');
+      return 'successfully logged out ';
+    } catch (error) {
+      throw new Error(`Logout failed: ${error.message}`);
+    }
   }
 
-  @UseGuards(AuthGuard)
-  @Subscription(() => ChangeUserStatusObject, {
-    filter: async function (payload, variables, context) {
-      const { req, res, session } = context;
-      // console.log(session);
-      // console.log(req);
-      // console.log(session);
-      if (!req?.user) {
-        this.handleError('user not found', HttpStatus.NOT_FOUND);
-      }
+  // @Mutation(() => Boolean)
+  // @UseGuards(AuthGuard)
+  // async updateUserStatus(
+  //   @Args('status') status: boolean,
+  //   @CurrentUser() user: AuthUser,
+  // ): Promise<boolean> {
+  //   const data = await this.sendCommand<boolean>(
+  //     AuthCommands.CHANGE_USER_STATUS,
+  //     {
+  //       userId: user._id,
+  //       status,
+  //     },
+  //   );
 
-      return payload.changeUserStatus.userId == variables.userId;
-    },
-  })
-  changeUserStatus(@Args('userId') userId: string) {
-    return this.pubSub.asyncIterator(CHANGE_USER_STATUS);
-  }
+  //   return data;
+  // }
+
+  // @UseGuards(AuthGuard)
+  // @Subscription(() => ChangeUserStatusObject, {
+  //   filter: async function (payload, variables, context) {
+  //     const { req, res, session } = context;
+  //     // console.log(session);
+  //     // console.log(req);
+  //     // console.log(session);
+  //     if (!req?.user) {
+  //       this.handleError('user not found', HttpStatus.NOT_FOUND);
+  //     }
+
+  //     return payload.changeUserStatus.userId == variables.userId;
+  //   },
+  // })
+  // changeUserStatus(@Args('userId') userId: string) {
+  //   return this.pubSub.asyncIterator(CHANGE_USER_STATUS);
+  // }
 }
