@@ -2,6 +2,8 @@ import { Controller, Get, Inject } from '@nestjs/common';
 import { UserService } from '../user.service';
 import {
   CoachCommands,
+  CoachingRequestStatus,
+  GetCoachingRequestInput,
   SendCoachingRequestInput,
   SharedService,
   StudentCommands,
@@ -47,6 +49,17 @@ export class CoachController {
         input.payload.requestId,
         input.payload.status,
       ),
+    );
+  }
+
+  @MessagePattern({ cmd: CoachCommands.GET_COACHING_REQUEST })
+  async getCoachingRequest(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<GetCoachingRequestInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.coachService.getCoachingRequest(input),
     );
   }
 }

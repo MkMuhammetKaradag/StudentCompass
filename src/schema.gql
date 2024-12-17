@@ -61,6 +61,12 @@ type SignUpObject {
 type Query {
   gethello: String!
   me: User!
+  getCoachingRequest(input: GetCoachingRequestInput!): [CoachingRequest!]!
+}
+
+input GetCoachingRequestInput {
+  coachingId: String
+  status: CoachingRequestStatus!
 }
 
 type Mutation {

@@ -1,8 +1,11 @@
 import {
   AuthGuard,
+  AuthUser,
   CoachCommands,
   CoachingRequest,
+  CoachingRequestStatus,
   CurrentUser,
+  GetCoachingRequestInput,
   PUB_SUB,
   RedisService,
   RolesGuard,
@@ -12,7 +15,7 @@ import {
   UserRole,
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 
@@ -65,6 +68,24 @@ export class CoachResolver {
   ): Promise<CoachingRequest> {
     const data = this.sendCommand<CoachingRequest>(
       CoachCommands.UPDATE_COACHING_REQUEST_STATUS,
+      {
+        currentUserId: user._id,
+        payload: input,
+      },
+    );
+
+    return data;
+  }
+
+  @Query(() => [CoachingRequest])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.USER, UserRole.ADMIN)
+  async getCoachingRequest(
+    @Args('input') input: GetCoachingRequestInput,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = this.sendCommand<CoachingRequest[]>(
+      CoachCommands.GET_COACHING_REQUEST,
       {
         currentUserId: user._id,
         payload: input,

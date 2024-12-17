@@ -19,6 +19,7 @@ export * from './Type/Input/User/Student/SendCoachingRequestInput';
 //Student Input End
 //Coach Input Start
 export * from './Type/Input/User/Coach/UpdateCoachingRequestInput';
+export * from './Type/Input/User/Coach/GetCoachingRequestInput';
 
 //Coach Input End
 //Object
