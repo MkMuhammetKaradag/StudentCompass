@@ -27,19 +27,35 @@ type User {
 """User roles"""
 enum UserRole {
   ADMIN
-  TEACHER
+  COACH
   STUDENT
   USER
 }
 
-type SignUpObject {
-  activationToken: String!
+type CoachingRequest {
+  _id: ID!
+  student: User!
+  coach: User!
+  status: CoachingRequestStatus!
+  message: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
-type SignInObject {
-  user: User
-  access_token: String!
-  refresh_token: String!
+"""Status of the coaching request"""
+enum CoachingRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type SignUpObject {
+  activationToken: String!
 }
 
 type ChangeUserStatusObject {
@@ -49,14 +65,16 @@ type ChangeUserStatusObject {
 
 type Query {
   gethello: String!
-  me: String!
+  me: User!
 }
 
 type Mutation {
   signUp(input: SignUpInput!): SignUpObject!
   activationUser(input: ActivationUserInput!): User!
-  signIn(input: SignInput!): SignInObject!
+  signIn(input: SignInput!): User!
   updateUserStatus(status: Boolean!): Boolean!
+  sendCoachingRequest(input: SendCoachingRequestInput!): CoachingRequest!
+  updateCoachingRequestStatus(input: UpdateCoachingRequestInput!): CoachingRequest!
 }
 
 input SignUpInput {
@@ -76,6 +94,16 @@ input ActivationUserInput {
 input SignInput {
   email: String!
   password: String!
+}
+
+input SendCoachingRequestInput {
+  coachingId: String
+  message: String!
+}
+
+input UpdateCoachingRequestInput {
+  requestId: String
+  status: CoachingRequestStatus!
 }
 
 type Subscription {

@@ -17,6 +17,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PasswordService } from './password.service';
 import { JwtHelperService } from './jwtHelper.service';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { RpcException } from '@nestjs/microservices';
 const BCRYPT_SALT_ROUNDS = 12;
 const ACTIVATION_CODE_LENGTH = 4;
 const ACTIVATION_TOKEN_EXPIRY = '5m';
@@ -36,12 +37,16 @@ export class AuthService {
     statusCode: HttpStatus,
     error?: any,
   ): never {
-    throw new GraphQLError(message, {
-      extensions: {
-        code: statusCode,
-        error,
-      },
+    throw new RpcException({
+      message,
+      statusCode: HttpStatus.CONFLICT,
     });
+    // throw new GraphQLError(message, {
+    //   extensions: {
+    //     code: statusCode,
+    //     error,
+    //   },
+    // });
   }
   // async hashPassword(password: string): Promise<string> {
   //   try {
@@ -164,13 +169,6 @@ export class AuthService {
     }
   }
 
-  // async doesPasswordMatch(
-  //   password: string,
-  //   hashedPassword: string,
-  // ): Promise<boolean> {
-  //   return bcrypt.compare(password, hashedPassword);
-  // }
-
   async validateUser(email: string, password: string): Promise<User> {
     try {
       const existingUser = await this.findUserByEmail(email);
@@ -208,29 +206,21 @@ export class AuthService {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: '7d',
     });
-
-    // this.jwtService.sign(payload, {
-    //   secret: process.env.JWT_REFRESH_SECRET,
-    //   expiresIn: '7d',
-    // });
   }
-  async signIn(loginUser: SignInput): Promise<{
-    user: User;
-    access_token: string;
-    refresh_token: string;
-  }> {
+  async signIn(loginUser: SignInput): Promise<User> {
     const { email, password } = loginUser;
     try {
       const user = await this.validateUser(email, password);
       const payload = { email: user.email, sub: user._id, roles: user.roles };
-      const access_token = await this.jwtHelper.signToken(payload);
+      // const access_token = await this.jwtHelper.signToken(payload);
       // const access_token = await this.jwtService.signAsync(payload);
-      const refresh_token = this.generateRefreshToken(
-        email,
-        user._id,
-        user.roles,
-      );
-      return { user, access_token, refresh_token };
+      // const refresh_token = this.generateRefreshToken(
+      //   email,
+      //   user._id,
+      //   user.roles,
+      // );
+      // return { user, access_token, refresh_token };
+      return user;
     } catch (error) {
       this.handleError(
         'Failed to login user',

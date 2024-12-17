@@ -25,10 +25,11 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { GraphQLError } from 'graphql';
 import { firstValueFrom } from 'rxjs';
-import { Session as SessionDoc } from 'express-session';
 import { ChangeUserStatusObject } from '../types/Auth/Object/ChangeUserStatusObject';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { Request } from 'express';
+import { Logger } from 'winston';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 const CHANGE_USER_STATUS = 'changeUserStatus';
 
 @Resolver('auth')
@@ -38,6 +39,7 @@ export class AuthResolver {
     private readonly authService: ClientProxy,
     private redisService: RedisService,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   /**
@@ -85,9 +87,11 @@ export class AuthResolver {
     statusCode: HttpStatus,
     error?: any,
   ): never {
-    throw new GraphQLError(message, {
+    console.log(error);
+    this.logger.error(`Exception: ${message} ${JSON.stringify(error)}`);
+    throw new GraphQLError(error.message || message, {
       extensions: {
-        code: statusCode,
+        code: error.statusCode || statusCode,
         error,
       },
     });
@@ -132,47 +136,39 @@ export class AuthResolver {
     return this.sendCommand<User>(AuthCommands.ACTIVATE_USER, input);
   }
   //login User
-  @Mutation(() => SignInObject)
+  @Mutation(() => User)
   async signIn(
     @Args('input') input: SignInput,
     @Context() context,
-    // @Session() session: SessionDoc,
-  ): Promise<SignInObject> {
+  ): Promise<User> {
     const { req, res } = context;
-    try {
-      const userAgent = req.headers['user-agent'];
-      const clientIp = this.getClientIp(req);
+    const userAgent = req.headers['user-agent'];
+    const clientIp = this.getClientIp(req);
 
-      const data = await this.sendCommand<SignInObject>(
-        AuthCommands.SIGN_IN,
-        input,
-      );
-      const sessionId = data.user._id;
-      await this.redisService.setSession(
-        sessionId,
-        {
-          user: {
-            _id: data.user._id,
-            email: data.user.email,
-            firstName: data.user.firstName,
-            roles: data.user.roles,
-          },
-          userAgent,
-          clientIp,
-          loggedInAt: new Date().toISOString(),
+    const data = await this.sendCommand<User>(
+      AuthCommands.SIGN_IN,
+      input,
+    );
+    const sessionId = data._id;
+    await this.redisService.setSession(
+      sessionId,
+      {
+        user: {
+          _id: data._id,
+          email: data.email,
+          firstName: data.firstName,
+          roles: data.roles,
         },
-        24 * 60 * 60,
-      );
-      this.setCookies(res, {
-        // refreshToken: data.refresh_token,
-        // accessToken: data.access_token,
-        sessionId: sessionId,
-      });
-      return data;
-    } catch (error) {
-      console.log(error);
-      this.handleError('Sign-in failed.', HttpStatus.UNAUTHORIZED, error);
-    }
+        userAgent,
+        clientIp,
+        loggedInAt: new Date().toISOString(),
+      },
+      24 * 60 * 60,
+    );
+    this.setCookies(res, {
+      sessionId: sessionId,
+    });
+    return data;
   }
 
   @Query(() => String)
@@ -184,15 +180,10 @@ export class AuthResolver {
     return 'hello';
   }
 
-  @Query(() => String)
+  @Query(() => User)
   @UseGuards(AuthGuard)
   async me(@Context() context, @CurrentUser() user: any) {
-    const sessionId = context.req.sessionID;
-    console.log(user);
-    // console.log('session-redis', await this.redisService.getSession(sessionId));
-    // console.log(context.session);
-
-    return ' context.req.session.user';
+    return user;
   }
 
   @Mutation(() => Boolean)

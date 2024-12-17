@@ -11,7 +11,7 @@ import { Document, Types } from 'mongoose';
 export type UserDocument = User & Document;
 export enum UserRole {
   ADMIN = 'admin',
-  TEACHER = 'teacher',
+  COACH = 'coach',
   STUDENT = 'student',
   USER = 'user',
 }
