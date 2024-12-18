@@ -12,6 +12,7 @@ import {
   SendCoachingRequestInput,
   StudentCommands,
   UpdateCoachingRequestInput,
+  User,
   UserRole,
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
@@ -93,5 +94,14 @@ export class CoachResolver {
     );
 
     return data;
+  }
+
+  @Query(() => [User])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ADMIN)
+  async getCoach(@CurrentUser() user: AuthUser) {
+    return this.sendCommand<User[]>(CoachCommands.GET_COACH, {
+      currentUserId: user._id,
+    });
   }
 }

@@ -61,7 +61,9 @@ type SignUpObject {
 type Query {
   gethello: String!
   me: User!
+  getStudent: [User!]!
   getCoachingRequest(input: GetCoachingRequestInput!): [CoachingRequest!]!
+  getCoach: [User!]!
 }
 
 input GetCoachingRequestInput {

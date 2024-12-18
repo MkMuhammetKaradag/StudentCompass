@@ -62,4 +62,15 @@ export class CoachController {
       this.coachService.getCoachingRequest(input),
     );
   }
+
+  @MessagePattern({ cmd: CoachCommands.GET_COACH })
+  async getCoach(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId,
+  ) {
+    return this.handleMessage(context, () =>
+      this.coachService.getCoach(input),
+    );
+  }
 }

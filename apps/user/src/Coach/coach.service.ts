@@ -95,7 +95,19 @@ export class CoachService {
       })
       .populate(populateConfig);
     return request;
+  }
 
-    
+  async getCoach(input: WithCurrentUserId) {
+    // const { currentUserId, payload } = input;
+    // const user = await this.userModel.findById(currentUserId);
+    // if (!user) {
+    //   this.handleError('User not found.', HttpStatus.NOT_FOUND);
+    // }
+    const coach = await this.userModel.find({
+      roles: {
+        $in: UserRole.COACH,
+      },
+    });
+    return coach;
   }
 }

@@ -1,5 +1,6 @@
 import {
   AuthGuard,
+  AuthUser,
   CoachingRequest,
   CurrentUser,
   PUB_SUB,
@@ -7,10 +8,11 @@ import {
   RolesGuard,
   SendCoachingRequestInput,
   StudentCommands,
+  User,
   UserRole,
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 
@@ -71,5 +73,14 @@ export class StudentResolver {
     );
 
     return data;
+  }
+
+  @Query(() => [User])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.ADMIN)
+  async getStudent(@CurrentUser() user: AuthUser) {
+    return this.sendCommand<User[]>(StudentCommands.GET_STUDENT, {
+      currentUserId: user._id,
+    });
   }
 }

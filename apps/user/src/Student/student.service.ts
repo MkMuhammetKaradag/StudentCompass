@@ -5,6 +5,7 @@ import {
   SendCoachingRequestInput,
   User,
   UserDocument,
+  UserRole,
   WithCurrentUserId,
 } from '@app/shared';
 import { HttpStatus, Injectable } from '@nestjs/common';
@@ -79,5 +80,13 @@ export class StudentService {
         error,
       );
     }
+  }
+
+  async getStudent() {
+    return this.userModel.find({
+      roles: {
+        $in: UserRole.STUDENT,
+      },
+    });
   }
 }

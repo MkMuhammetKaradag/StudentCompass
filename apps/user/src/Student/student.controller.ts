@@ -45,4 +45,13 @@ export class StudentController {
       this.studentService.sendCoachingRequest(input),
     );
   }
+
+  @MessagePattern({ cmd: StudentCommands.GET_STUDENT })
+  async getStudent(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId,
+  ) {
+    return this.handleMessage(context, () => this.studentService.getStudent());
+  }
 }
