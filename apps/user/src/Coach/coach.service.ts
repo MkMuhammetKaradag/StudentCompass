@@ -50,8 +50,25 @@ export class CoachService {
         this.handleError('Coaching request not found', HttpStatus.NOT_FOUND);
       }
       if (status === CoachingRequestStatus.ACCEPTED) {
+        await this.coachingRequestModel.updateMany(
+          {
+            student: request.student,
+            status: CoachingRequestStatus.PENDING,
+            _id: { $ne: requestId },
+          },
+          {
+            status: CoachingRequestStatus.REJECTED,
+            message:
+              'Student already has a coach. This request has been rejected.',
+          },
+        );
+        
         await this.userModel.findByIdAndUpdate(request.coach, {
           $addToSet: { coachedStudents: request.student },
+        });
+
+        await this.userModel.findByIdAndUpdate(request.student, {
+          coach: request.coach,
         });
       }
 

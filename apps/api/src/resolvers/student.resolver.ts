@@ -59,7 +59,7 @@ export class StudentResolver {
 
   @Mutation(() => CoachingRequest)
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.STUDENT, UserRole.USER)
+  @Roles(UserRole.STUDENT)
   async sendCoachingRequest(
     @Args('input') input: SendCoachingRequestInput,
     @CurrentUser() user: any,
