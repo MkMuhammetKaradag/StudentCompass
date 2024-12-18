@@ -8,3 +8,12 @@ export enum CoachCommands {
   GET_COACHING_REQUEST = 'get_coaching_request',
   GET_COACH = 'get_coach',
 }
+
+export enum UserCommands {
+  GET_USER = 'get_USER',
+}
+
+export enum NotificationCommands {
+  GET_NOTIFICATION = 'get_notification',
+  SEND_NOTIFICATION = 'send_notification',
+}

@@ -40,6 +40,7 @@ export * from './modules/pubSub.module';
 //Schema
 export * from './schemas/user.schema';
 export * from './schemas/coachingRequest.schema';
+export * from './schemas/notification.schema';
 
 //Schema End
 

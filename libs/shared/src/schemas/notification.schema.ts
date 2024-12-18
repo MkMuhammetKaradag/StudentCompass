@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from './user.schema';
@@ -12,6 +12,11 @@ export enum NotificationType {
   ERROR = 'error',
 }
 
+registerEnumType(NotificationType, {
+  name: 'NotificationType',
+  description: 'notification  type',
+});
+
 @Schema({ timestamps: true })
 @ObjectType()
 export class Notification {
@@ -19,15 +24,15 @@ export class Notification {
   _id: string;
 
   @Prop({
-    type: [{ type: Types.ObjectId, ref: 'User' }],
+    type: [String],
     required: true,
   })
   @Field(() => [ID])
-  recipients: Types.ObjectId[];
+  recipients: string[];
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: String, required: true })
   @Field(() => User)
-  sender: Types.ObjectId;
+  sender: string;
 
   @Prop({ required: true })
   @Field()

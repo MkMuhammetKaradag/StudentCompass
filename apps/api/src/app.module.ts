@@ -17,6 +17,7 @@ import { WinstonModule, utilities } from 'nest-winston';
 import * as winston from 'winston';
 import { StudentResolver } from './resolvers/student.resolver';
 import { CoachResolver } from './resolvers/coach.resolver';
+import { NotificationResolver } from './resolvers/notification.resolver';
 @Module({
   imports: [
     RedisModule,
@@ -24,6 +25,7 @@ import { CoachResolver } from './resolvers/coach.resolver';
     SharedModule.registerRmq('AUTH_SERVICE', 'AUTH'),
     SharedModule.registerRmq('USER_SERVICE', 'USER'),
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
+    SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService, RedisService],
@@ -117,6 +119,12 @@ import { CoachResolver } from './resolvers/coach.resolver';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AuthResolver, StudentResolver, CoachResolver],
+  providers: [
+    AppService,
+    AuthResolver,
+    StudentResolver,
+    CoachResolver,
+    NotificationResolver,
+  ],
 })
 export class AppModule {}

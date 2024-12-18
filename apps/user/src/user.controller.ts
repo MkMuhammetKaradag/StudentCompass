@@ -4,6 +4,7 @@ import {
   SendCoachingRequestInput,
   SharedService,
   StudentCommands,
+  UserCommands,
 } from '@app/shared';
 import {
   Ctx,
@@ -30,6 +31,17 @@ export class UserController {
       console.error('Error processing message:', error);
       throw error;
     }
+  }
+
+  @MessagePattern({ cmd: UserCommands.GET_USER })
+  async getUser(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: {
+      userId: string;
+    },
+  ) {
+    return this.handleMessage(context, () => this.userService.getUser(input.userId));
   }
 
   @MessagePattern({ cmd: StudentCommands.SEND_COACHING_REGUEST })
