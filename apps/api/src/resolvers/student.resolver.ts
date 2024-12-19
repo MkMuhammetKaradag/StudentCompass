@@ -21,6 +21,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { firstValueFrom } from 'rxjs';
 import { GraphQLError } from 'graphql';
 import { Roles } from '@app/shared/common/decorators/roles.decorator';
+import { GetMyCoachingRequestInput } from '@app/shared/Type/Input/User/Student/GetMyCoachingRequestInput';
 
 @Resolver('student')
 export class StudentResolver {
@@ -46,7 +47,7 @@ export class StudentResolver {
   }
   private async sendCommand<T>(cmd: StudentCommands, payload: any): Promise<T> {
     try {
-      console.log(payload);
+      // console.log(payload);
       return await firstValueFrom<T>(this.authService.send({ cmd }, payload));
     } catch (error) {
       this.handleError(
@@ -66,6 +67,23 @@ export class StudentResolver {
   ): Promise<CoachingRequest> {
     const data = this.sendCommand<CoachingRequest>(
       StudentCommands.SEND_COACHING_REGUEST,
+      {
+        currentUserId: user._id,
+        payload: input,
+      },
+    );
+
+    return data;
+  }
+  @Query(() => [CoachingRequest])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT)
+  async getMyCoachingRequest(
+    @Args('input') input: GetMyCoachingRequestInput,
+    @CurrentUser() user: any,
+  ): Promise<CoachingRequest[]> {
+    const data = this.sendCommand<CoachingRequest[]>(
+      StudentCommands.GET_MY_COACHING_REGUEST,
       {
         currentUserId: user._id,
         payload: input,

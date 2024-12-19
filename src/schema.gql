@@ -80,10 +80,15 @@ enum NotificationType {
 type Query {
   gethello: String!
   me: User!
+  getMyCoachingRequest(input: GetMyCoachingRequestInput!): [CoachingRequest!]!
   getStudent: [User!]!
   getCoachingRequest(input: GetCoachingRequestInput!): [CoachingRequest!]!
   getCoach: [User!]!
   getNotification: [Notification!]!
+}
+
+input GetMyCoachingRequestInput {
+  status: CoachingRequestStatus
 }
 
 input GetCoachingRequestInput {

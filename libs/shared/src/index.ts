@@ -15,7 +15,7 @@ export * from './Type/Input/Auth/ActivationUserInput';
 
 //Student Input Start
 export * from './Type/Input/User/Student/SendCoachingRequestInput';
-
+export * from "./Type/Input/User/Student/GetMyCoachingRequestInput"
 //Student Input End
 //Coach Input Start
 export * from './Type/Input/User/Coach/UpdateCoachingRequestInput';

@@ -1,6 +1,7 @@
 export enum StudentCommands {
   GET_STUDENT = 'get_student',
   SEND_COACHING_REGUEST = 'send_coaching_request',
+  GET_MY_COACHING_REGUEST = 'get_my_coaching_request',
 }
 
 export enum CoachCommands {

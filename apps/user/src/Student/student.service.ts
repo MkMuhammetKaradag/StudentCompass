@@ -2,6 +2,7 @@ import {
   CoachingRequest,
   CoachingRequestDocument,
   CoachingRequestStatus,
+  GetMyCoachingRequestInput,
   SendCoachingRequestInput,
   User,
   UserDocument,
@@ -88,5 +89,17 @@ export class StudentService {
         $in: UserRole.STUDENT,
       },
     });
+  }
+
+  async getMyCoachingRequest(
+    input: WithCurrentUserId<GetMyCoachingRequestInput>,
+  ) {
+    const { currentUserId, payload } = input;
+    const coachingRequest = await this.coachingRequestModel.find({
+      student: new Types.ObjectId(currentUserId),
+      ...(payload.status ? { status: { $in: payload.status } } : {}),
+    });
+    console.log(coachingRequest);
+    return coachingRequest;
   }
 }
