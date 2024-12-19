@@ -25,6 +25,7 @@ import { CoachService } from './Coach/coach.service';
       isGlobal: true,
     }),
     SharedModule,
+    SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     MongoDBModule.forRoot('USER', 'user'),
     MongooseModule.forFeature(
       [

@@ -46,6 +46,7 @@ export class CoachController {
   ) {
     return this.handleMessage(context, () =>
       this.coachService.updateCoachingRequestStatus(
+        input.currentUserId,
         input.payload.requestId,
         input.payload.status,
       ),
@@ -69,8 +70,6 @@ export class CoachController {
     @Payload()
     input: WithCurrentUserId,
   ) {
-    return this.handleMessage(context, () =>
-      this.coachService.getCoach(input),
-    );
+    return this.handleMessage(context, () => this.coachService.getCoach(input));
   }
 }

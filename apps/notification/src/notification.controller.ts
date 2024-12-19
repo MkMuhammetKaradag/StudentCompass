@@ -8,6 +8,7 @@ import {
 } from '@app/shared';
 import {
   Ctx,
+  EventPattern,
   MessagePattern,
   Payload,
   RmqContext,
@@ -45,7 +46,28 @@ export class NotificationController {
     );
   }
 
-  @MessagePattern({ cmd: NotificationCommands.SEND_NOTIFICATION })
+  // @MessagePattern({ cmd: NotificationCommands.SEND_NOTIFICATION })
+  // async sendNotification(
+  //   @Ctx() context: RmqContext,
+  //   @Payload()
+  //   payload: {
+  //     senderId: string;
+  //     recipientIds: string[];
+  //     message: string;
+  //     type?: NotificationType;
+  //   },
+  // ) {
+  //   return this.handleMessage(context, () =>
+  //     this.notificationService.sendNotification(
+  //       payload.senderId,
+  //       payload.recipientIds,
+  //       payload.message,
+  //       payload.type,
+  //     ),
+  //   );
+  // }
+
+  @EventPattern(NotificationCommands.SEND_NOTIFICATION)
   async sendNotification(
     @Ctx() context: RmqContext,
     @Payload()
@@ -56,14 +78,27 @@ export class NotificationController {
       type?: NotificationType;
     },
   ) {
-    console.log('first');
-    return this.handleMessage(context, () =>
-      this.notificationService.sendNotification(
+    // return this.handleMessage(context, () =>
+    //   this.notificationService.sendNotification(
+    //     payload.senderId,
+    //     payload.recipientIds,
+    //     payload.message,
+    //     payload.type,
+    //   ),
+    // );
+
+    try {
+      await this.notificationService.sendNotification(
         payload.senderId,
         payload.recipientIds,
         payload.message,
         payload.type,
-      ),
-    );
+      );
+      this.sharedService.acknowledgeMessage(context);
+    } catch (error) {
+      console.error('Error processing message:', error);
+      this.sharedService.acknowledgeMessage(context);
+      throw error;
+    }
   }
 }

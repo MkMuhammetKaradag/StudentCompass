@@ -3,14 +3,17 @@ import {
   CoachingRequestDocument,
   CoachingRequestStatus,
   GetCoachingRequestInput,
+  NotificationCommands,
+  NotificationType,
   User,
   UserDocument,
   UserRole,
   WithCurrentUserId,
 } from '@app/shared';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
+import { NotificationController } from 'apps/notification/src/notification.controller';
 import { Model, Types } from 'mongoose';
 
 @Injectable()
@@ -19,6 +22,9 @@ export class CoachService {
     @InjectModel(User.name, 'user') private userModel: Model<UserDocument>,
     @InjectModel(CoachingRequest.name, 'user')
     private coachingRequestModel: Model<CoachingRequestDocument>,
+
+    @Inject('NOTIFICATION_SERVICE')
+    private readonly notificationServiceClient: ClientProxy,
   ) {}
   private handleError(
     message: string,
@@ -31,38 +37,66 @@ export class CoachService {
       cause: error,
     });
   }
-
+  private notificationEmitEvent(cmd: string, payload: any) {
+    this.notificationServiceClient.emit(cmd, payload);
+  }
   async updateCoachingRequestStatus(
+    currentUserId: string,
     requestId: string,
     status: CoachingRequestStatus,
   ) {
     try {
-      const request = await this.coachingRequestModel.findOneAndUpdate(
-        {
-          _id: requestId,
-          status: CoachingRequestStatus.PENDING,
-        },
-        { status },
-        { new: true },
-      );
+      const request = await this.coachingRequestModel
+        .findOneAndUpdate(
+          {
+            _id: requestId,
+            status: CoachingRequestStatus.PENDING,
+          },
+          { status },
+          { new: true },
+        )
+        .populate('student');
 
       if (!request) {
         this.handleError('Coaching request not found', HttpStatus.NOT_FOUND);
       }
       if (status === CoachingRequestStatus.ACCEPTED) {
-        await this.coachingRequestModel.updateMany(
-          {
-            student: request.student,
-            status: CoachingRequestStatus.PENDING,
-            _id: { $ne: requestId },
+        const rejectedRequests =
+          await this.coachingRequestModel.aggregate<CoachingRequestDocument>([
+            {
+              $match: {
+                student: request.student._id,
+                status: CoachingRequestStatus.PENDING,
+                _id: { $ne: new Types.ObjectId(requestId) },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                coach: 1,
+              },
+            },
+          ]);
+        const bulkUpdates = rejectedRequests.map((req) => ({
+          updateOne: {
+            filter: { _id: req._id },
+            update: {
+              status: CoachingRequestStatus.REJECTED,
+              message:
+                'Student already has a coach. This request has been rejected.',
+            },
           },
-          {
-            status: CoachingRequestStatus.REJECTED,
-            message:
-              'Student already has a coach. This request has been rejected.',
-          },
-        );
-        
+        }));
+        await this.coachingRequestModel.bulkWrite(bulkUpdates);
+
+        const coachIds = rejectedRequests.map((req) => req.coach.toString());
+        const student = request.student as any;
+        this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
+          senderId: currentUserId,
+          recipientIds: coachIds,
+          message: ` Coaching requests for user ${student.userName} have been cancelled`,
+          notificationType: NotificationType.INFO,
+        });
         await this.userModel.findByIdAndUpdate(request.coach, {
           $addToSet: { coachedStudents: request.student },
         });
