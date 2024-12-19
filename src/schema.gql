@@ -98,7 +98,7 @@ type Mutation {
   logout: String!
   sendCoachingRequest(input: SendCoachingRequestInput!): CoachingRequest!
   updateCoachingRequestStatus(input: UpdateCoachingRequestInput!): CoachingRequest!
-  sendNotification(recipientIds: [String!]!, message: String!, type: NotificationType): Notification!
+  sendNotification(recipientIds: [String!]!, message: String!, type: NotificationType): String!
 }
 
 input SignUpInput {
@@ -128,4 +128,8 @@ input SendCoachingRequestInput {
 input UpdateCoachingRequestInput {
   requestId: String
   status: CoachingRequestStatus!
+}
+
+type Subscription {
+  userNotifications: Notification!
 }

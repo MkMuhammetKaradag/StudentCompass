@@ -92,7 +92,11 @@ export class CoachService {
         const coachIds = rejectedRequests.map((req) => req.coach.toString());
         const student = request.student as any;
         this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
-          senderId: currentUserId,
+          senderId: {
+            _id: student._id,
+            userName: student.userName,
+            profilePhoto: student.profilePhoto,
+          },
           recipientIds: coachIds,
           message: ` Coaching requests for user ${student.userName} have been cancelled`,
           notificationType: NotificationType.INFO,

@@ -12,7 +12,12 @@ import {
   UserCommands,
   UserRole,
 } from '@app/shared';
-import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  UseGuards,
+} from '@nestjs/common';
 import {
   Args,
   Mutation,
@@ -20,6 +25,7 @@ import {
   Query,
   ResolveField,
   Resolver,
+  Subscription,
 } from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
@@ -39,6 +45,7 @@ export class NotificationResolver {
     private readonly userService: ClientProxy,
 
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
   private handleError(
     message: string,
@@ -99,7 +106,7 @@ export class NotificationResolver {
 
     return data;
   }
-  @Mutation(() => Notification)
+  @Mutation(() => String)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER)
   async sendNotification(
@@ -109,15 +116,44 @@ export class NotificationResolver {
     @Args('message') message: string,
     @Args('type', { type: () => NotificationType, nullable: true })
     type?: NotificationType,
-  ): Promise<Notification> {
-    return this.sendCommand<Notification>(
-      NotificationCommands.SEND_NOTIFICATION,
-      {
-        senderId: user._id,
-        recipientIds,
-        message,
-        type,
+  ): Promise<String> {
+
+    this.notificationService.emit(NotificationCommands.SEND_NOTIFICATION, {
+      sender: {
+        _id: user._id,
+        userName: 'test',
+        profilePhoto: null,
       },
-    );
+      recipientIds,
+      message,
+      type,
+    });
+    return 'send';
+  }
+
+  @UseGuards(AuthGuard)
+  @Subscription(() => Notification, {
+    filter: async function (payload, variables, context) {
+      const { req, res } = context;
+      if (!req?.user) {
+        throw new BadRequestException();
+      }
+      const user = req.user;
+      const isUserInRecipients = await this.isUserInRecipients(
+        payload.userNotifications.recipients,
+        user._id,
+      );
+      return isUserInRecipients;
+    },
+  })
+  userNotifications() {
+    return this.pubSub.asyncIterator('userNotifications');
+  }
+
+  async isUserInRecipients(
+    recipients: string[],
+    userId: string,
+  ): Promise<boolean> {
+    return recipients.includes(userId);
   }
 }

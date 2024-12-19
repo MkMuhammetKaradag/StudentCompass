@@ -72,7 +72,11 @@ export class NotificationController {
     @Ctx() context: RmqContext,
     @Payload()
     payload: {
-      senderId: string;
+      sender: {
+        _id: string;
+        userName: string;
+        profilePhoto: string | null;
+      };
       recipientIds: string[];
       message: string;
       type?: NotificationType;
@@ -89,7 +93,7 @@ export class NotificationController {
 
     try {
       await this.notificationService.sendNotification(
-        payload.senderId,
+        payload.sender,
         payload.recipientIds,
         payload.message,
         payload.type,
