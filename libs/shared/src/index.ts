@@ -11,6 +11,7 @@ export * from './Type/generic';
 export * from './Type/Input/Auth/SignUpInput';
 export * from './Type/Input/Auth/SignInput';
 export * from './Type/Input/Auth/ActivationUserInput';
+export * from './Type/Input/Auth/ResetPasswordInput';
 //Auth Input End
 
 //Student Input Start
@@ -18,6 +19,7 @@ export * from './Type/Input/User/Student/SendCoachingRequestInput';
 export * from './Type/Input/User/Student/GetMyCoachingRequestInput';
 export * from './Type/Input/User/Student/CancelMyCoachingRequestInput';
 //Student Input End
+
 //Coach Input Start
 export * from './Type/Input/User/Coach/UpdateCoachingRequestInput';
 export * from './Type/Input/User/Coach/GetCoachingRequestInput';
@@ -42,7 +44,7 @@ export * from './modules/pubSub.module';
 export * from './schemas/user.schema';
 export * from './schemas/coach.schema';
 export * from './schemas/student.schema';
-
+export * from './schemas/passwordReset.schema';
 export * from './schemas/coachingRequest.schema';
 export * from './schemas/notification.schema';
 

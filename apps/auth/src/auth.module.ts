@@ -5,6 +5,8 @@ import {
   CoachingRequest,
   CoachingRequestSchema,
   MongoDBModule,
+  PasswordReset,
+  PasswordResetSchema,
   PubSubModule,
   RedisModule,
   SharedModule,
@@ -37,7 +39,10 @@ import { JwtHelperService } from './jwtHelper.service';
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
     MongoDBModule.forRoot('AUTH', 'auth'),
     MongooseModule.forFeature(
-      [{ name: User.name, schema: UserSchema }],
+      [
+        { name: User.name, schema: UserSchema },
+        { name: PasswordReset.name, schema: PasswordResetSchema },
+      ],
       'auth',
     ),
   ],

@@ -94,12 +94,43 @@ export class AuthController {
   }
 
   @MessagePattern({ cmd: AuthCommands.CHANGE_USER_STATUS })
-  async changeUserStatus(@Ctx() context: RmqContext, @Payload() input: {
-    userId: string
-    status: boolean
-  }) {
+  async changeUserStatus(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: {
+      userId: string;
+      status: boolean;
+    },
+  ) {
     return this.handleMessage(context, () =>
       this.authService.changeUserStatus(input),
+    );
+  }
+
+  @MessagePattern({ cmd: AuthCommands.FORGOT_PASSWORD })
+  async forgotPassword(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: {
+      email: string;
+    },
+  ) {
+    return this.handleMessage(context, () =>
+      this.authService.forgotPassword(input.email),
+    );
+  }
+
+  @MessagePattern({ cmd: AuthCommands.RESET_PASSWORD })
+  async resetPassword(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: {
+      password: string;
+      token: string;
+    },
+  ) {
+    return this.handleMessage(context, () =>
+      this.authService.resetPassword(input.password, input.token),
     );
   }
 }

@@ -7,6 +7,7 @@ import {
   GqlAuthGuard,
   PUB_SUB,
   RedisService,
+  ResetPasswordInput,
   SignInObject,
   SignInput,
   SignUpInput,
@@ -205,38 +206,18 @@ export class AuthResolver {
     }
   }
 
-  // @Mutation(() => Boolean)
-  // @UseGuards(AuthGuard)
-  // async updateUserStatus(
-  //   @Args('status') status: boolean,
-  //   @CurrentUser() user: AuthUser,
-  // ): Promise<boolean> {
-  //   const data = await this.sendCommand<boolean>(
-  //     AuthCommands.CHANGE_USER_STATUS,
-  //     {
-  //       userId: user._id,
-  //       status,
-  //     },
-  //   );
+  @Mutation(() => String)
+  async forgotPassword(@Args('email') email: string) {
+    return this.sendCommand<String>(AuthCommands.FORGOT_PASSWORD, {
+      email,
+    });
+  }
 
-  //   return data;
-  // }
-
-  // @UseGuards(AuthGuard)
-  // @Subscription(() => ChangeUserStatusObject, {
-  //   filter: async function (payload, variables, context) {
-  //     const { req, res, session } = context;
-  //     // console.log(session);
-  //     // console.log(req);
-  //     // console.log(session);
-  //     if (!req?.user) {
-  //       this.handleError('user not found', HttpStatus.NOT_FOUND);
-  //     }
-
-  //     return payload.changeUserStatus.userId == variables.userId;
-  //   },
-  // })
-  // changeUserStatus(@Args('userId') userId: string) {
-  //   return this.pubSub.asyncIterator(CHANGE_USER_STATUS);
-  // }
+  @Mutation(() => String)
+  async resetPassword(@Args('input') input: ResetPasswordInput) {
+    return this.sendCommand<String>(AuthCommands.RESET_PASSWORD, {
+      password: input.password,
+      token: input.token,
+    });
+  }
 }

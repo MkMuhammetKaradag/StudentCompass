@@ -13,6 +13,8 @@ export enum CoachCommands {
 
 export enum UserCommands {
   GET_USER = 'get_USER',
+  FORGOT_PASSWORD = 'forgot_password',
+  RESET_PASSWORD = 'reset_password',
 }
 
 export enum NotificationCommands {

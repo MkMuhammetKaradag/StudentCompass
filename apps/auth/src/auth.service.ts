@@ -1,5 +1,7 @@
 import {
   ActivationUserInput,
+  PasswordReset,
+  PasswordResetDocument,
   PUB_SUB,
   RedisService,
   SignInput,
@@ -18,6 +20,7 @@ import { PasswordService } from './password.service';
 import { JwtHelperService } from './jwtHelper.service';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { RpcException } from '@nestjs/microservices';
+import { v4 as uuidv4 } from 'uuid';
 const BCRYPT_SALT_ROUNDS = 12;
 const ACTIVATION_CODE_LENGTH = 4;
 const ACTIVATION_TOKEN_EXPIRY = '5m';
@@ -26,6 +29,9 @@ export class AuthService {
   constructor(
     @InjectModel(User.name, 'auth')
     private userModel: Model<UserDocument>, // AUTH veritabanından User modeli
+    @InjectModel(PasswordReset.name, 'auth')
+    private passwordResetModel: Model<PasswordResetDocument>,
+
     // private readonly jwtService: JwtService,
     private readonly passwordService: PasswordService,
     private readonly jwtHelper: JwtHelperService,
@@ -312,5 +318,61 @@ export class AuthService {
         error,
       );
     }
+  }
+
+  async generateForgotPasswordLink(userId: string): Promise<string> {
+    const resetToken = uuidv4();
+    const expiresAt = new Date(Date.now() + 3600000);
+    const passwordReset = new this.passwordResetModel({
+      user: userId,
+      token: resetToken,
+      expiresAt,
+    });
+
+    await passwordReset.save();
+
+    return resetToken;
+  }
+
+  async forgotPassword(email: string): Promise<string> {
+    const user = await this.findUserByEmail(email);
+
+    if (!user) {
+      this.handleError('User Not Found', HttpStatus.NOT_FOUND);
+    }
+    try {
+      const forgotPasswordToken = await this.generateForgotPasswordLink(
+        user._id,
+      );
+
+      console.log(forgotPasswordToken);
+
+      return `Your forgot password request succesful!`;
+    } catch (error) {
+      this.handleError(
+        'Failed to orgot Password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+      );
+    }
+  }
+
+  async resetPassword(password: string, token: string): Promise<String> {
+    const passwordReset = await this.passwordResetModel.findOne({ token });
+
+    if (!passwordReset || passwordReset.expiresAt < new Date()) {
+      this.handleError('Invalid or expired token', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.userModel.findById(passwordReset.user);
+    if (!user) {
+      this.handleError('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    user.password = await this.passwordService.hashPassword(password);
+    await user.save();
+    await this.passwordResetModel.findByIdAndDelete(passwordReset._id);
+
+    return 'Password successfully reset';
   }
 }

@@ -96,6 +96,8 @@ type Mutation {
   activationUser(input: ActivationUserInput!): User!
   signIn(input: SignInput!): User!
   logout: String!
+  forgotPassword(email: String!): String!
+  resetPassword(input: ResetPasswordInput!): String!
   sendCoachingRequest(input: SendCoachingRequestInput!): CoachingRequest!
   cancelMyCoachingRequest(input: CancelMyCoachingRequestInput!): CoachingRequest!
   updateCoachingRequestStatus(input: UpdateCoachingRequestInput!): CoachingRequest!
@@ -118,6 +120,11 @@ input ActivationUserInput {
 
 input SignInput {
   email: String!
+  password: String!
+}
+
+input ResetPasswordInput {
+  token: String!
   password: String!
 }
 
