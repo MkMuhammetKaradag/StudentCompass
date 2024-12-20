@@ -1,6 +1,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { UserService } from '../user.service';
 import {
+  CancelMyCoachingRequestInput,
   GetMyCoachingRequestInput,
   SendCoachingRequestInput,
   SharedService,
@@ -64,6 +65,17 @@ export class StudentController {
   ) {
     return this.handleMessage(context, () =>
       this.studentService.getMyCoachingRequest(input),
+    );
+  }
+
+  @MessagePattern({ cmd: StudentCommands.CANCEL_MY_COACHING_REGUEST })
+  async cancelMyCoachingRequest(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<CancelMyCoachingRequestInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.studentService.cancelMyCoachingRequest(input),
     );
   }
 }

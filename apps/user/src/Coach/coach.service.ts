@@ -1,10 +1,14 @@
 import {
+  CoachDocument,
   CoachingRequest,
   CoachingRequestDocument,
   CoachingRequestStatus,
+  CoachSchema,
   GetCoachingRequestInput,
   NotificationCommands,
   NotificationType,
+  StudentDocument,
+  StudentSchema,
   User,
   UserDocument,
   UserRole,
@@ -13,16 +17,17 @@ import {
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
-import { NotificationController } from 'apps/notification/src/notification.controller';
 import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class CoachService {
   constructor(
     @InjectModel(User.name, 'user') private userModel: Model<UserDocument>,
+    @InjectModel(User.name, 'user') private coachModel: Model<CoachDocument>,
+    @InjectModel(User.name, 'user')
+    private studentModel: Model<StudentDocument>,
     @InjectModel(CoachingRequest.name, 'user')
     private coachingRequestModel: Model<CoachingRequestDocument>,
-
     @Inject('NOTIFICATION_SERVICE')
     private readonly notificationServiceClient: ClientProxy,
   ) {}
@@ -92,11 +97,7 @@ export class CoachService {
         const coachIds = rejectedRequests.map((req) => req.coach.toString());
         const student = request.student as any;
         this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
-          senderId: {
-            _id: student._id,
-            userName: student.userName,
-            profilePhoto: student.profilePhoto,
-          },
+          senderId: student._id,
           recipientIds: coachIds,
           message: ` Coaching requests for user ${student.userName} have been cancelled`,
           notificationType: NotificationType.INFO,
@@ -124,7 +125,7 @@ export class CoachService {
     const { currentUserId, payload } = input;
 
     // Find user and validate existence
-    const user = await this.userModel.findById(currentUserId);
+    const user = await this.coachModel.findById(currentUserId);
     if (!user) {
       this.handleError('User not found.', HttpStatus.NOT_FOUND);
     }
@@ -153,12 +154,7 @@ export class CoachService {
   }
 
   async getCoach(input: WithCurrentUserId) {
-    // const { currentUserId, payload } = input;
-    // const user = await this.userModel.findById(currentUserId);
-    // if (!user) {
-    //   this.handleError('User not found.', HttpStatus.NOT_FOUND);
-    // }
-    const coach = await this.userModel.find({
+    const coach = await this.coachModel.find({
       roles: {
         $in: UserRole.COACH,
       },

@@ -63,29 +63,29 @@ export class User {
   @Field(() => [UserRole])
   roles: UserRole[];
 
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
-  @Field(() => [User], { nullable: true })
-  coachedStudents?: Types.ObjectId[];
+  // @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  // @Field(() => [User], { nullable: true })
+  // coachedStudents?: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, ref: 'User', nullable: true })
-  @Field(() => User, { nullable: true })
-  coach?: Types.ObjectId;
+  // @Prop({ type: Types.ObjectId, ref: 'User', nullable: true })
+  // @Field(() => User, { nullable: true })
+  // coach?: Types.ObjectId;
 
-  @Prop({ nullable: true })
-  @Field(() => String, { nullable: true })
-  academicLevel?: string;
+  // @Prop({ nullable: true })
+  // @Field(() => String, { nullable: true })
+  // academicLevel?: string;
 
-  @Prop({ type: [String], default: [] })
-  @Field(() => [String], { nullable: true })
-  interests?: string[];
+  // @Prop({ type: [String], default: [] })
+  // @Field(() => [String], { nullable: true })
+  // interests?: string[];
 
-  @Prop({ nullable: true })
-  @Field({ nullable: true })
-  expertise?: string;
+  // @Prop({ nullable: true })
+  // @Field({ nullable: true })
+  // expertise?: string;
 
-  @Prop({ default: 0 })
-  @Field()
-  maxStudents: number;
+  // @Prop({ default: 0 })
+  // @Field()
+  // maxStudents: number;
 
   @Prop({ nullable: true })
   @Field({ nullable: true })

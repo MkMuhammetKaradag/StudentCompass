@@ -1,9 +1,13 @@
 import {
+  CancelMyCoachingRequestInput,
+  Coach,
+  CoachDocument,
   CoachingRequest,
   CoachingRequestDocument,
   CoachingRequestStatus,
   GetMyCoachingRequestInput,
   SendCoachingRequestInput,
+  StudentDocument,
   User,
   UserDocument,
   UserRole,
@@ -12,12 +16,15 @@ import {
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { model, Model, Types } from 'mongoose';
 
 @Injectable()
 export class StudentService {
   constructor(
     @InjectModel(User.name, 'user') private userModel: Model<UserDocument>,
+    @InjectModel(User.name, 'user') private coachModel: Model<CoachDocument>,
+    @InjectModel(User.name, 'user')
+    private studentModel: Model<StudentDocument>,
     @InjectModel(CoachingRequest.name, 'user')
     private coachingRequestModel: Model<CoachingRequestDocument>,
   ) {}
@@ -40,7 +47,7 @@ export class StudentService {
       const { currentUserId, payload } = input;
 
       // 1. Öğrencinin mevcut bir koçu olup olmadığını kontrol et
-      const existingUser = await this.userModel.findById(currentUserId);
+      const existingUser = await this.studentModel.findById(currentUserId);
       if (!existingUser) {
         this.handleError('User not found', HttpStatus.NOT_FOUND);
       }
@@ -84,11 +91,13 @@ export class StudentService {
   }
 
   async getStudent() {
-    return this.userModel.find({
+    const student = await this.studentModel.find({
       roles: {
         $in: UserRole.STUDENT,
       },
     });
+
+    return student;
   }
 
   async getMyCoachingRequest(
@@ -101,5 +110,24 @@ export class StudentService {
     });
     console.log(coachingRequest);
     return coachingRequest;
+  }
+
+  async cancelMyCoachingRequest(
+    input: WithCurrentUserId<CancelMyCoachingRequestInput>,
+  ) {
+    const {
+      currentUserId,
+      payload: { requestId },
+    } = input;
+    const coachingRequest = await this.coachingRequestModel.findOne({
+      _id: new Types.ObjectId(requestId),
+      student: new Types.ObjectId(currentUserId),
+      status: CoachingRequestStatus.PENDING,
+    });
+    if (!coachingRequest) {
+      this.handleError('Request Not Found', HttpStatus.NOT_FOUND);
+    }
+    coachingRequest.status = CoachingRequestStatus.CANCELD;
+    return await coachingRequest.save();
   }
 }

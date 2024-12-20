@@ -9,6 +9,7 @@ export enum CoachingRequestStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
+  CANCELD = 'canceld',
 }
 
 registerEnumType(CoachingRequestStatus, {

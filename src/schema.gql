@@ -10,12 +10,6 @@ type User {
   email: String!
   profilePhoto: String
   roles: [UserRole!]!
-  coachedStudents: [User!]
-  coach: User
-  academicLevel: String
-  interests: [String!]
-  expertise: String
-  maxStudents: Float!
   bio: String
   isDeleted: Boolean!
   deletedAt: String
@@ -47,6 +41,7 @@ enum CoachingRequestStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELD
 }
 
 """
@@ -102,6 +97,7 @@ type Mutation {
   signIn(input: SignInput!): User!
   logout: String!
   sendCoachingRequest(input: SendCoachingRequestInput!): CoachingRequest!
+  cancelMyCoachingRequest(input: CancelMyCoachingRequestInput!): CoachingRequest!
   updateCoachingRequestStatus(input: UpdateCoachingRequestInput!): CoachingRequest!
   sendNotification(recipientIds: [String!]!, message: String!, type: NotificationType): String!
 }
@@ -128,6 +124,10 @@ input SignInput {
 input SendCoachingRequestInput {
   coachingId: String
   message: String!
+}
+
+input CancelMyCoachingRequestInput {
+  requestId: String!
 }
 
 input UpdateCoachingRequestInput {

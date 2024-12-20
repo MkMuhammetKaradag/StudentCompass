@@ -2,12 +2,16 @@ import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import {
+  Coach,
   CoachingRequest,
   CoachingRequestSchema,
+  CoachSchema,
   MongoDBModule,
   PubSubModule,
   SharedModule,
   SharedService,
+  Student,
+  StudentSchema,
   User,
   UserSchema,
 } from '@app/shared';
@@ -29,7 +33,10 @@ import { CoachService } from './Coach/coach.service';
     MongoDBModule.forRoot('USER', 'user'),
     MongooseModule.forFeature(
       [
-        { name: User.name, schema: UserSchema },
+        {
+          name: User.name,
+          schema: UserSchema,
+        },
         {
           name: CoachingRequest.name,
           schema: CoachingRequestSchema,

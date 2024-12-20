@@ -15,7 +15,8 @@ export * from './Type/Input/Auth/ActivationUserInput';
 
 //Student Input Start
 export * from './Type/Input/User/Student/SendCoachingRequestInput';
-export * from "./Type/Input/User/Student/GetMyCoachingRequestInput"
+export * from './Type/Input/User/Student/GetMyCoachingRequestInput';
+export * from './Type/Input/User/Student/CancelMyCoachingRequestInput';
 //Student Input End
 //Coach Input Start
 export * from './Type/Input/User/Coach/UpdateCoachingRequestInput';
@@ -39,6 +40,9 @@ export * from './modules/pubSub.module';
 
 //Schema
 export * from './schemas/user.schema';
+export * from './schemas/coach.schema';
+export * from './schemas/student.schema';
+
 export * from './schemas/coachingRequest.schema';
 export * from './schemas/notification.schema';
 
@@ -50,6 +54,8 @@ export * from './common/guards/auth.gqlguard';
 export * from './common/decorators/user.decorator';
 export * from './common/guards/role.guard';
 //Common End
+//Models
+export * from './models/userModels';
 
 // export * from './common/middleware/session.middleware';
 export * from './modules/redis.module';

@@ -26,17 +26,13 @@ export class NotificationService {
   }
 
   async sendNotification(
-    sender: {
-      _id: string;
-      userName: string;
-      profilePhoto: string | null;
-    },
+    senderId: string,
     recipientIds: string[],
     message: string,
     type: NotificationType = NotificationType.INFO,
   ): Promise<Notification> {
     const notification = new this.notificationModel({
-      sender: sender._id,
+      sender: senderId,
       recipients: recipientIds,
       message,
       type,
@@ -45,7 +41,7 @@ export class NotificationService {
     this.pubSub.publish('userNotifications', {
       userNotifications: {
         _id: notification._id,
-        sender: sender._id,
+        sender: senderId,
         recipients: recipientIds,
         message: notification.message,
         type: notification.type,

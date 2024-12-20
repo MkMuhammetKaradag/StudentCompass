@@ -99,7 +99,6 @@ export class AuthService {
       );
       return { activationToken };
     } catch (error) {
-      console.log(error);
       this.handleError(
         'Failed to register user',
         HttpStatus.INTERNAL_SERVER_ERROR,

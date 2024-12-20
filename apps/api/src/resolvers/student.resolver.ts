@@ -1,6 +1,7 @@
 import {
   AuthGuard,
   AuthUser,
+  CancelMyCoachingRequestInput,
   CoachingRequest,
   CurrentUser,
   PUB_SUB,
@@ -75,6 +76,25 @@ export class StudentResolver {
 
     return data;
   }
+
+  @Mutation(() => CoachingRequest)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT)
+  async cancelMyCoachingRequest(
+    @Args('input') input: CancelMyCoachingRequestInput,
+    @CurrentUser() user: any,
+  ): Promise<CoachingRequest> {
+    const data = this.sendCommand<CoachingRequest>(
+      StudentCommands.CANCEL_MY_COACHING_REGUEST,
+      {
+        currentUserId: user._id,
+        payload: input,
+      },
+    );
+
+    return data;
+  }
+
   @Query(() => [CoachingRequest])
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.STUDENT)
