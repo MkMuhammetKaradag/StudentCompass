@@ -18,6 +18,7 @@ import * as winston from 'winston';
 import { StudentResolver } from './resolvers/student.resolver';
 import { CoachResolver } from './resolvers/coach.resolver';
 import { NotificationResolver } from './resolvers/notification.resolver';
+import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
 @Module({
   imports: [
     RedisModule,
@@ -25,6 +26,7 @@ import { NotificationResolver } from './resolvers/notification.resolver';
     SharedModule.registerRmq('AUTH_SERVICE', 'AUTH'),
     SharedModule.registerRmq('USER_SERVICE', 'USER'),
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
+    SharedModule.registerRmq('CLASSROOME_SERVICE', 'CLASSROOME'),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule],
@@ -125,6 +127,7 @@ import { NotificationResolver } from './resolvers/notification.resolver';
     StudentResolver,
     CoachResolver,
     NotificationResolver,
+    ClassRoomeResolver,
   ],
 })
 export class AppModule {}

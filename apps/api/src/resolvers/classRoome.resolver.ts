@@ -1,9 +1,12 @@
 import {
   AuthGuard,
   AuthUser,
+  ClassRoom,
+  ClassCommands,
   CoachCommands,
   CoachingRequest,
   CoachingRequestStatus,
+  CreateClassInput,
   CurrentUser,
   GetCoachingRequestInput,
   PUB_SUB,
@@ -28,12 +31,12 @@ import { firstValueFrom } from 'rxjs';
 import { GraphQLError } from 'graphql';
 import { Roles } from '@app/shared/common/decorators/roles.decorator';
 
-@Resolver('user')
-export class UserResolver {
+@Resolver('ClassRoome')
+export class ClassRoomeResolver {
   constructor(
-    @Inject('USER_SERVICE')
-    private readonly authService: ClientProxy,
-    private redisService: RedisService,
+    @Inject('CLASSROOME_SERVICE')
+    private readonly classService: ClientProxy,
+
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
@@ -50,9 +53,9 @@ export class UserResolver {
       },
     });
   }
-  private async sendCommand<T>(cmd: UserCommands, payload: any): Promise<T> {
+  private async sendCommand<T>(cmd: ClassCommands, payload: any): Promise<T> {
     try {
-      return await firstValueFrom<T>(this.authService.send({ cmd }, payload));
+      return await firstValueFrom<T>(this.classService.send({ cmd }, payload));
     } catch (error) {
       this.handleError(
         'An error occurred during the request.',
@@ -62,6 +65,27 @@ export class UserResolver {
     }
   }
 
+  @Query(() => String)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.USER)
+  async getClass(@CurrentUser() user: AuthUser) {
+    return 'Class';
+  }
 
-  
+  @Mutation(() => ClassRoom)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH)
+  async createClass(
+    @CurrentUser() user: AuthUser,
+    @Args('input')
+    input: CreateClassInput,
+  ): Promise<ClassRoom> {
+    const data = await this.sendCommand<ClassRoom>(ClassCommands.CREATE_CLASS, {
+      currentUserId: user._id,
+      payload: input,
+    });
+    console.log('dat');
+    console.log(data);
+    return data;
+  }
 }

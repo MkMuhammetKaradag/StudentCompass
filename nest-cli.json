@@ -54,6 +54,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/notification/tsconfig.app.json"
       }
+    },
+    "class": {
+      "type": "application",
+      "root": "apps/class",
+      "entryFile": "main",
+      "sourceRoot": "apps/class/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/class/tsconfig.app.json"
+      }
     }
   }
 }

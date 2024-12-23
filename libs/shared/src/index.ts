@@ -25,12 +25,18 @@ export * from './Type/Input/User/Coach/UpdateCoachingRequestInput';
 export * from './Type/Input/User/Coach/GetCoachingRequestInput';
 
 //Coach Input End
+
+//Class Input start
+export * from './Type/Input/Class/CreateClassInput';
+//Class Input End
+
 //Object
 export * from './Type/Object/Auth/SignUpObject';
 export * from './Type/Object/Auth/SignInObject';
 //Enum
 export * from './Type/Enum/auth';
 export * from './Type/Enum/user';
+export * from './Type/Enum/class';
 
 export * from './Type/request/user';
 //Type End
@@ -47,6 +53,7 @@ export * from './schemas/student.schema';
 export * from './schemas/passwordReset.schema';
 export * from './schemas/coachingRequest.schema';
 export * from './schemas/notification.schema';
+export * from './schemas/classRoom.schema';
 
 //Schema End
 

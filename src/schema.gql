@@ -53,6 +53,44 @@ type SignUpObject {
   activationToken: String!
 }
 
+type Coach {
+  _id: ID!
+  firstName: String!
+  lastName: String!
+  userName: String!
+  email: String!
+  profilePhoto: String
+  roles: [UserRole!]!
+  bio: String
+  isDeleted: Boolean!
+  deletedAt: String
+  createdAt: String!
+  updatedAt: String!
+  status: Boolean!
+  expertise: String
+  maxStudents: Float
+  coachedStudents: [User!]
+}
+
+type Student {
+  _id: ID!
+  firstName: String!
+  lastName: String!
+  userName: String!
+  email: String!
+  profilePhoto: String
+  roles: [UserRole!]!
+  bio: String
+  isDeleted: Boolean!
+  deletedAt: String
+  createdAt: String!
+  updatedAt: String!
+  status: Boolean!
+  academicLevel: String
+  interests: [String!]
+  coach: User
+}
+
 type Notification {
   _id: ID!
   recipients: [ID!]!
@@ -72,6 +110,56 @@ enum NotificationType {
   ERROR
 }
 
+type Assignment {
+  _id: ID!
+  title: String!
+  description: String
+  dueDate: DateTime!
+  class: ClassRoom
+  students: [Student!]
+  coach: Coach
+  status: AssignmentStatus!
+  priority: AssignmentPriority
+  visibility: AssignmentVisibility
+  tags: [String!]
+  feedback: String
+  grade: Float
+  completedAt: DateTime
+  timeBeforeDueDate: Float
+}
+
+"""Assignment Status"""
+enum AssignmentStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+}
+
+"""Assignment Priority"""
+enum AssignmentPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+"""Assignment visibility"""
+enum AssignmentVisibility {
+  PUBLIC
+  PRIVATE
+  TEAM
+}
+
+type ClassRoom {
+  _id: ID!
+  name: String!
+  description: String!
+  coach: Coach!
+  students: [Student!]!
+  assignments: [Assignment!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
 type Query {
   gethello: String!
   me: User!
@@ -80,6 +168,7 @@ type Query {
   getCoachingRequest(input: GetCoachingRequestInput!): [CoachingRequest!]!
   getCoach: [User!]!
   getNotification: [Notification!]!
+  getClass: String!
 }
 
 input GetMyCoachingRequestInput {
@@ -102,6 +191,7 @@ type Mutation {
   cancelMyCoachingRequest(input: CancelMyCoachingRequestInput!): CoachingRequest!
   updateCoachingRequestStatus(input: UpdateCoachingRequestInput!): CoachingRequest!
   sendNotification(recipientIds: [String!]!, message: String!, type: NotificationType): String!
+  createClass(input: CreateClassInput!): ClassRoom!
 }
 
 input SignUpInput {
@@ -140,6 +230,11 @@ input CancelMyCoachingRequestInput {
 input UpdateCoachingRequestInput {
   requestId: String
   status: CoachingRequestStatus!
+}
+
+input CreateClassInput {
+  name: String!
+  description: String!
 }
 
 type Subscription {
