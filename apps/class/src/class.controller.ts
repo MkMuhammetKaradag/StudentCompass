@@ -3,6 +3,7 @@ import { ClassService } from './class.service';
 import {
   ClassCommands,
   CreateClassInput,
+  CreateClassRoomJoinLinkInput,
   SharedService,
   WithCurrentUserId,
 } from '@app/shared';
@@ -41,6 +42,17 @@ export class ClassController {
   ) {
     return this.handleMessage(context, () =>
       this.classService.createClass(input),
+    );
+  }
+
+  @MessagePattern({ cmd: ClassCommands.CREATE_CLASS_JOIN_LINK })
+  async createClassRoomeJoinLink(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<CreateClassRoomJoinLinkInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.classService.createJoinLink(input),
     );
   }
 }

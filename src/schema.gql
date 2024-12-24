@@ -192,6 +192,7 @@ type Mutation {
   updateCoachingRequestStatus(input: UpdateCoachingRequestInput!): CoachingRequest!
   sendNotification(recipientIds: [String!]!, message: String!, type: NotificationType): String!
   createClass(input: CreateClassInput!): ClassRoom!
+  createClassRoomJoinLink(input: CreateClassRoomJoinLinkInput!): String!
 }
 
 input SignUpInput {
@@ -235,6 +236,11 @@ input UpdateCoachingRequestInput {
 input CreateClassInput {
   name: String!
   description: String!
+}
+
+input CreateClassRoomJoinLinkInput {
+  duration: Float! = 10
+  classRoomId: String!
 }
 
 type Subscription {

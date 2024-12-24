@@ -28,6 +28,7 @@ export * from './Type/Input/User/Coach/GetCoachingRequestInput';
 
 //Class Input start
 export * from './Type/Input/Class/CreateClassInput';
+export * from './Type/Input/Class/CreateClassRoomJoinLinkInput';
 //Class Input End
 
 //Object
@@ -54,7 +55,7 @@ export * from './schemas/passwordReset.schema';
 export * from './schemas/coachingRequest.schema';
 export * from './schemas/notification.schema';
 export * from './schemas/classRoom.schema';
-
+export * from './schemas/classRoomJoinLink.schema';
 //Schema End
 
 //Common

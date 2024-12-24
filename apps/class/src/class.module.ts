@@ -3,6 +3,8 @@ import { ClassController } from './class.controller';
 import { ClassService } from './class.service';
 import {
   ClassRoom,
+  ClassRoomJoinLink,
+  ClassRoomJoinLinkSchema,
   ClassRoomSchema,
   MongoDBModule,
   PubSubModule,
@@ -21,7 +23,10 @@ import { MongooseModule } from '@nestjs/mongoose';
     SharedModule,
     MongoDBModule.forRoot('CLASSROOME', 'classRoome'),
     MongooseModule.forFeature(
-      [{ name: ClassRoom.name, schema: ClassRoomSchema }],
+      [
+        { name: ClassRoom.name, schema: ClassRoomSchema },
+        { name: ClassRoomJoinLink.name, schema: ClassRoomJoinLinkSchema },
+      ],
       'classRoome',
     ),
   ],

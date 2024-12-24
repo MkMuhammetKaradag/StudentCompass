@@ -3,22 +3,13 @@ import {
   AuthUser,
   ClassRoom,
   ClassCommands,
-  CoachCommands,
-  CoachingRequest,
-  CoachingRequestStatus,
   CreateClassInput,
   CurrentUser,
-  GetCoachingRequestInput,
   PUB_SUB,
-  RedisService,
-  ResetPasswordInput,
   RolesGuard,
-  SendCoachingRequestInput,
-  StudentCommands,
-  UpdateCoachingRequestInput,
-  User,
-  UserCommands,
   UserRole,
+  ClassRoomJoinLink,
+  CreateClassRoomJoinLinkInput,
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
@@ -87,5 +78,25 @@ export class ClassRoomeResolver {
     console.log('dat');
     console.log(data);
     return data;
+  }
+
+  @Mutation(() => String)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH)
+  async createClassRoomJoinLink(
+    @CurrentUser() user: AuthUser,
+    @Args('input')
+    input: CreateClassRoomJoinLinkInput,
+  ): Promise<String> {
+    const data = await this.sendCommand<ClassRoomJoinLink>(
+      ClassCommands.CREATE_CLASS_JOIN_LINK,
+      {
+        currentUserId: user._id,
+        payload: input,
+      },
+    );
+
+    return 'data';
+    // return data;
   }
 }
