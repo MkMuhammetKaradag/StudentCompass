@@ -128,4 +128,30 @@ export class ClassService {
 
     return classRoom;
   }
+
+  async leaveClassRoom(
+    input: WithCurrentUserId<{
+      classRoomId: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { classRoomId },
+    } = input;
+
+    // Sınıfı güncelle
+    const classRoom = await this.classRoomModel.findOne({
+      _id: classRoomId,
+      students: { $in: [currentUserId] },
+    });
+    if (!classRoom) {
+      this.handleError('ClassRoome not Found', HttpStatus.NOT_FOUND);
+    }
+
+    classRoom.students = classRoom.students.filter(
+      (studentId) => studentId !== currentUserId,
+    );
+    await classRoom.save();
+    return 'Leave ClassRoome';
+  }
 }

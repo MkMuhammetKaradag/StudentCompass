@@ -27,11 +27,11 @@ export class ClassRoom {
 
   @Prop({ type: [String], default: [] })
   @Field(() => [Student])
-  students: String[]; // Sınıfa kayıtlı öğrenciler
+  students: string[]; // Sınıfa kayıtlı öğrenciler
 
   @Prop({ type: [String], default: [] })
   @Field(() => [Assignment])
-  assignments: String[]; // Sınıfa ait ödevler
+  assignments: string[]; // Sınıfa ait ödevler
 
   @Field()
   createdAt: string;

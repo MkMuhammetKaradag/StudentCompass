@@ -118,4 +118,24 @@ export class ClassRoomeResolver {
 
     return data;
   }
+
+  @Mutation(() => String)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT)
+  async leaveClassRoom(
+    @Args('classRoomId') classRoomId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<String> {
+    const data = await this.sendCommand<String>(
+      ClassCommands.LEAVE_CLASS_ROOM,
+      {
+        currentUserId: user._id,
+        payload: {
+          classRoomId,
+        },
+      },
+    );
+
+    return data;
+  }
 }

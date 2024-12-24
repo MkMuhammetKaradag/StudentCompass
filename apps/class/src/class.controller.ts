@@ -68,4 +68,17 @@ export class ClassController {
       this.classService.joinClassRoom(input),
     );
   }
+
+  @MessagePattern({ cmd: ClassCommands.LEAVE_CLASS_ROOM })
+  async leaveClassRoom(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      classRoomId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.classService.leaveClassRoom(input),
+    );
+  }
 }
