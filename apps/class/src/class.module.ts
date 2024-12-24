@@ -20,8 +20,11 @@ import { MongooseModule } from '@nestjs/mongoose';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
     SharedModule,
+    SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     MongoDBModule.forRoot('CLASSROOME', 'classRoome'),
+
     MongooseModule.forFeature(
       [
         { name: ClassRoom.name, schema: ClassRoomSchema },

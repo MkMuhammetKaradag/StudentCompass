@@ -99,4 +99,23 @@ export class ClassRoomeResolver {
     return 'data';
     // return data;
   }
+  @Mutation(() => ClassRoom)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT)
+  async joinClassRoom(
+    @Args('token') token: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<ClassRoom> {
+    const data = await this.sendCommand<ClassRoom>(
+      ClassCommands.JOIN_CLASS_ROOM,
+      {
+        currentUserId: user._id,
+        payload: {
+          token: token,
+        },
+      },
+    );
+
+    return data;
+  }
 }

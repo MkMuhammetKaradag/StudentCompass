@@ -193,6 +193,7 @@ type Mutation {
   sendNotification(recipientIds: [String!]!, message: String!, type: NotificationType): String!
   createClass(input: CreateClassInput!): ClassRoom!
   createClassRoomJoinLink(input: CreateClassRoomJoinLinkInput!): String!
+  joinClassRoom(token: String!): ClassRoom!
 }
 
 input SignUpInput {

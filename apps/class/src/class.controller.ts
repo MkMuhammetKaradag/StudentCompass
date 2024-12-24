@@ -55,4 +55,17 @@ export class ClassController {
       this.classService.createJoinLink(input),
     );
   }
+
+  @MessagePattern({ cmd: ClassCommands.JOIN_CLASS_ROOM })
+  async joinClassRoom(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      token: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.classService.joinClassRoom(input),
+    );
+  }
 }

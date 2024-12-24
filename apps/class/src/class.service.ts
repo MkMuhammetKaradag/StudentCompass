@@ -5,7 +5,9 @@ import {
   ClassRoomJoinLinkDocument,
   CreateClassInput,
   CreateClassRoomJoinLinkInput,
+  NotificationCommands,
   NotificationDocument,
+  NotificationType,
   PUB_SUB,
   WithCurrentUserId,
 } from '@app/shared';
@@ -14,7 +16,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { Model, Types } from 'mongoose';
 import * as crypto from 'crypto';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 @Injectable()
 export class ClassService {
   constructor(
@@ -23,6 +25,8 @@ export class ClassService {
     @InjectModel(ClassRoomJoinLink.name, 'classRoome')
     private readonly classRoomJoinLinkModel: Model<ClassRoomJoinLinkDocument>,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
+    @Inject('NOTIFICATION_SERVICE')
+    private readonly notificationServiceClient: ClientProxy,
   ) {}
   private handleError(
     message: string,
@@ -37,6 +41,10 @@ export class ClassService {
             statusCode,
           },
     );
+  }
+
+  private notificationEmitEvent(cmd: string, payload: any) {
+    this.notificationServiceClient.emit(cmd, payload);
   }
   async createClass(input: WithCurrentUserId<CreateClassInput>) {
     const { currentUserId, payload } = input;
@@ -82,5 +90,42 @@ export class ClassService {
     });
 
     return joinLink.save();
+  }
+
+  async joinClassRoom(
+    input: WithCurrentUserId<{
+      token: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { token },
+    } = input;
+
+    const joinLink = await this.classRoomJoinLinkModel.findOne({ token });
+    if (!joinLink || joinLink.expiresAt < new Date()) {
+      this.handleError('Invalid or expired join link', HttpStatus.BAD_REQUEST);
+    }
+
+    // Sınıfı güncelle
+    const classRoom = await this.classRoomModel.findById(joinLink.classRoom);
+    if (!classRoom) {
+      this.handleError('ClassRoome not Found', HttpStatus.NOT_FOUND);
+    }
+
+    if (!classRoom.students.includes(currentUserId)) {
+      classRoom.students.push(currentUserId);
+
+      this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
+        senderId: currentUserId,
+        recipientIds: [classRoom.coach],
+        message: `${currentUserId}, ${classRoom.name} sınıfına katıldı. Katılım tarihi: ${new Date(Date.now()).toLocaleString('en-US')}.`,
+        notificationType: NotificationType.INFO,
+      });
+
+      await classRoom.save();
+    }
+
+    return classRoom;
   }
 }
