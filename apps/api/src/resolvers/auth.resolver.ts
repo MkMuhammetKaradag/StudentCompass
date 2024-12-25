@@ -31,6 +31,7 @@ import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { Request, Response } from 'express';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
 const CHANGE_USER_STATUS = 'changeUserStatus';
 
 @Resolver('auth')
@@ -41,6 +42,7 @@ export class AuthResolver {
     private redisService: RedisService,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private readonly broadcastService: BroadcastPublisherService,
   ) {}
 
   /**
@@ -175,6 +177,13 @@ export class AuthResolver {
     const { req, res, session } = context;
     console.log('session-redis', session);
 
+    const message = { event: 'example_event', data: 'Hello from Publisher' };
+    await this.broadcastService.publish(message);
+
+    await this.broadcastService.publish({
+      event: 'new-user',
+      data: 'mewUserPublisher',
+    });
     return 'hello';
   }
 

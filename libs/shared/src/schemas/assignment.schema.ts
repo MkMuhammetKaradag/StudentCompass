@@ -7,9 +7,17 @@ import { Coach } from './coach.schema';
 
 export enum AssignmentStatus {
   PENDING = 'pending',
-  COMPLETED = 'completed',
+  IN_PROGRESS = 'in_progress',
+  SUBMITTED = 'submitted',
+  GRADED = 'graded',
   OVERDUE = 'overdue',
 }
+
+export enum AssignmentType {
+  CLASS = 'class',
+  INDIVIDUAL= 'individual',
+}
+
 export enum AssignmentPriority {
   HIGH = 'high',
   MEDIUM = 'medium',
@@ -35,6 +43,12 @@ registerEnumType(AssignmentVisibility, {
   name: 'AssignmentVisibility',
   description: 'Assignment visibility',
 });
+
+registerEnumType(AssignmentType, {
+  name: 'AssignmentType',
+  description: 'Assignment Type',
+});
+
 @Schema({ timestamps: true }) // Timestamps ile createdAt ve updatedAt otomatik eklenir
 @ObjectType()
 export class Assignment {
@@ -53,17 +67,36 @@ export class Assignment {
   @Prop({ type: Date, required: true })
   dueDate: Date; // Son teslim tarihi
 
-  @Prop({ type: String, nullable: true })
-  @Field(() => ClassRoom, { nullable: true })
-  class?: string;
+  @Field(() => AssignmentType)
+  @Prop({
+    type: String,
+    enum: AssignmentType,
+    required: true,
+  })
+  assignmentType: AssignmentType;
 
-  @Prop({ type: [String], default: [] })
+  @Field(() => ClassRoom, { nullable: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'ClassRoom',
+    required: function () {
+      return this.assignmentType === AssignmentType.CLASS;
+    },
+  })
+  classRoom?: Types.ObjectId;
+
+  @Prop({
+    type: [String],
+    required: function () {
+      return this.assignmentType === AssignmentType.INDIVIDUAL;
+    },
+  })
   @Field(() => [Student], { nullable: true })
   students?: string[]; // Ödevin atanacağı öğrenciler (opsiyonel)
 
-  @Field(() => Coach, { nullable: true })
-  @Prop({ type: String, required: false })
-  coach?: string; // Görev/Ödevi oluşturan koç (isteğe bağlı)
+  @Field(() => Coach)
+  @Prop({ type: String, required: true })
+  coach: string; // Görev/Ödevi oluşturan koç (isteğe bağlı)
 
   @Field(() => AssignmentStatus)
   @Prop({
@@ -79,7 +112,7 @@ export class Assignment {
     enum: AssignmentPriority,
     default: AssignmentPriority.LOW,
   })
-  priority?: AssignmentPriority;
+  priority: AssignmentPriority;
 
   @Field(() => AssignmentVisibility, { nullable: true })
   @Prop({
@@ -93,20 +126,13 @@ export class Assignment {
   @Prop({ type: [String], default: [] })
   tags?: string[]; // Görev/Ödev etiketleri (isteğe bağlı)
 
-  @Field(() => String, { nullable: true })
-  @Prop({ type: String, default: null })
-  feedback?: string; // Görev/Ödev geri bildirimi (koç tarafından)
-
-  @Field(() => Number, { nullable: true })
-  @Prop({ type: Number, default: null })
-  grade?: number; // Görev/Ödev notu (isteğe bağlı)
-
-  @Field(() => Date, { nullable: true })
-  @Prop({ type: Date })
-  completedAt?: Date; // Görev/Ödev tamamlanma tarihi
 
   @Field(() => Number, { nullable: true })
   timeBeforeDueDate?: number; // Teslim tarihine kalan süre (dinamik alan)
+
+  @Field(() => [String], { nullable: true })
+  @Prop({ type: [String], default: [] })
+  attachments?: string[];
 }
 
 export type AssignmentDocument = Assignment & Document;

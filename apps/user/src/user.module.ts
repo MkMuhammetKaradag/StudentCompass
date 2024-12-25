@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import {
@@ -21,6 +21,7 @@ import { StudentController } from './Student/student.controller';
 import { StudentService } from './Student/student.service';
 import { CoachController } from './Coach/coach.controller';
 import { CoachService } from './Coach/coach.service';
+import { BroadcastConsumerService } from '@app/shared/services/broadcast.consumer.service';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CoachService } from './Coach/coach.service';
       isGlobal: true,
     }),
     SharedModule,
+    SharedModule.registerBroadcastExchange(),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     MongoDBModule.forRoot('USER', 'user'),
     MongooseModule.forFeature(
@@ -50,10 +52,19 @@ import { CoachService } from './Coach/coach.service';
     UserService,
     StudentService,
     CoachService,
+    BroadcastConsumerService,
     {
       provide: 'SharedServiceInterface',
       useClass: SharedService,
     },
   ],
 })
-export class UserModule {}
+export class UserModule implements OnModuleInit {
+  constructor(private readonly consumerService: BroadcastConsumerService) {}
+
+  async onModuleInit() {
+    await this.consumerService.consume((msg) => {
+      console.log('Processed broadcast message:', msg);
+    });
+  }
+}

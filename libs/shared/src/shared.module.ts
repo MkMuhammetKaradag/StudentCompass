@@ -1,7 +1,12 @@
 import { DynamicModule, Inject, Module } from '@nestjs/common';
 import { SharedService } from './shared.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import {
+  ClientProxyFactory,
+  RmqOptions,
+  Transport,
+} from '@nestjs/microservices';
+import * as amqp from 'amqplib';
 
 @Module({
   imports: [
@@ -36,6 +41,31 @@ export class SharedModule {
       },
       inject: [ConfigService],
     };
+    return {
+      module: SharedModule,
+      providers: [provider],
+      exports: [provider],
+    };
+  }
+  static registerBroadcastExchange(): DynamicModule {
+    const provider = {
+      provide: 'BROADCAST_EXCHANGE',
+      useFactory: async (configService: ConfigService) => {
+        const USER = configService.get<string>('RABBITMQ_USER');
+        const PASS = configService.get<string>('RABBITMQ_PASS');
+        const HOST = configService.get<string>('RABBITMQ_HOST');
+
+        const connection = await amqp.connect(`amqp://${USER}:${PASS}@${HOST}`);
+        const channel = await connection.createChannel();
+
+        const exchange = 'fanout_exchange';
+        await channel.assertExchange(exchange, 'fanout', { durable: true });
+
+        return { channel, exchange };
+      },
+      inject: [ConfigService],
+    };
+
     return {
       module: SharedModule,
       providers: [provider],

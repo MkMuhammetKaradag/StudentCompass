@@ -115,23 +115,30 @@ type Assignment {
   title: String!
   description: String
   dueDate: DateTime!
-  class: ClassRoom
+  assignmentType: AssignmentType!
+  classRoom: ClassRoom
   students: [Student!]
-  coach: Coach
+  coach: Coach!
   status: AssignmentStatus!
   priority: AssignmentPriority
   visibility: AssignmentVisibility
   tags: [String!]
-  feedback: String
-  grade: Float
-  completedAt: DateTime
   timeBeforeDueDate: Float
+  attachments: [String!]
+}
+
+"""Assignment Type"""
+enum AssignmentType {
+  CLASS
+  INDIVIDUAL
 }
 
 """Assignment Status"""
 enum AssignmentStatus {
   PENDING
-  COMPLETED
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
   OVERDUE
 }
 

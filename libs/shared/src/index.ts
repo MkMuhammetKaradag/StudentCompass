@@ -1,6 +1,7 @@
 export * from './shared.module';
 export * from './shared.service';
 
+
 //Utils
 export * from './utils/parseCookies';
 
@@ -56,6 +57,8 @@ export * from './schemas/coachingRequest.schema';
 export * from './schemas/notification.schema';
 export * from './schemas/classRoom.schema';
 export * from './schemas/classRoomJoinLink.schema';
+export * from './schemas/assignment.schema';
+export * from './schemas/assignmentSubmission.schema';
 //Schema End
 
 //Common

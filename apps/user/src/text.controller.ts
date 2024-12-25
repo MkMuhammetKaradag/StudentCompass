@@ -8,7 +8,6 @@ import {
 } from '@app/shared';
 import {
   Ctx,
-  EventPattern,
   MessagePattern,
   Payload,
   RmqContext,
@@ -28,6 +27,21 @@ export class UserController {
     try {
       this.sharedService.acknowledgeMessage(context);
       return await handler();
+    } catch (error) {
+      console.error('Error processing message:', error);
+      throw error;
+    }
+  }
+  @MessagePattern('broadcast_pattern')
+  async test(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: any,
+  ) {
+    try {
+      console.log(input);
+      this.sharedService.acknowledgeMessage(context);
+      return 'asa';
     } catch (error) {
       console.error('Error processing message:', error);
       throw error;
@@ -53,21 +67,5 @@ export class UserController {
     @Payload() input: SendCoachingRequestInput,
   ) {
     // return this.handleMessage(context, () => this.authService.signUp(input));
-  }
-
-  @EventPattern({ cmd: 'broadcast_pattern' })
-  async test(
-    @Ctx() context: RmqContext,
-    @Payload()
-    input: any,
-  ) {
-    try {
-      console.log("input",input);
-      // this.sharedService.acknowledgeMessage(context);
-      return 'asa';
-    } catch (error) {
-      console.error('Error processing message:', error);
-      throw error;
-    }
   }
 }

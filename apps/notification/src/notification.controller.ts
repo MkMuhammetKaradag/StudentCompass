@@ -101,4 +101,20 @@ export class NotificationController {
       throw error;
     }
   }
+
+  @EventPattern({ cmd: 'broadcast_pattern' })
+  async test(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: any,
+  ) {
+    try {
+      console.log('input', input);
+      // this.sharedService.acknowledgeMessage(context);
+      return 'asa';
+    } catch (error) {
+      console.error('Error processing message:', error);
+      throw error;
+    }
+  }
 }

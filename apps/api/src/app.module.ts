@@ -19,6 +19,7 @@ import { StudentResolver } from './resolvers/student.resolver';
 import { CoachResolver } from './resolvers/coach.resolver';
 import { NotificationResolver } from './resolvers/notification.resolver';
 import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
+import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
 @Module({
   imports: [
     RedisModule,
@@ -28,6 +29,7 @@ import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
     SharedModule.registerRmq('CLASSROOME_SERVICE', 'CLASSROOME'),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
+    SharedModule.registerBroadcastExchange(),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService, RedisService],
@@ -53,26 +55,14 @@ import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
           'graphql-ws': true,
           'subscriptions-transport-ws': {
             onConnect: async (connectionParams, webSocket, context) => {
-              // console.log(webSocket.upgradeReq.headers);
               const cookieString = webSocket.upgradeReq.headers.cookie || '';
               const cookies = parseCookies(cookieString);
               const userAgent =
                 webSocket.upgradeReq.headers['user-agent'] || '';
-              // console.log( webSocket.upgradeReq.headers['user-agent'] || '');
-              // if (cookies.session_id) {
-              //   const session = await redisService.get(
-              //     `sess:${cookies.session_id || 'null'}`,
-              //   );
-              // }
 
               const sessionId = cookies.session_id;
-              // console.log(userAgent);
+
               if (sessionId && userAgent) {
-                // const session = await redisService.getSession(
-                //   sessionId,
-                //   userAgent,
-                // );
-                // console.log(session);
                 return {
                   req: {
                     cookies: cookies,
@@ -122,6 +112,8 @@ import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
   ],
   controllers: [AppController],
   providers: [
+    // BroadcastConsumerService,
+    BroadcastPublisherService,
     AppService,
     AuthResolver,
     StudentResolver,
