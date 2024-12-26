@@ -16,6 +16,12 @@ type User {
   createdAt: String!
   updatedAt: String!
   status: Boolean!
+  expertise: String
+  maxStudents: Float
+  coachedStudents: [User!]
+  academicLevel: String
+  interests: [String!]
+  coach: User
 }
 
 """User roles"""
@@ -53,44 +59,6 @@ type SignUpObject {
   activationToken: String!
 }
 
-type Coach {
-  _id: ID!
-  firstName: String!
-  lastName: String!
-  userName: String!
-  email: String!
-  profilePhoto: String
-  roles: [UserRole!]!
-  bio: String
-  isDeleted: Boolean!
-  deletedAt: String
-  createdAt: String!
-  updatedAt: String!
-  status: Boolean!
-  expertise: String
-  maxStudents: Float
-  coachedStudents: [User!]
-}
-
-type Student {
-  _id: ID!
-  firstName: String!
-  lastName: String!
-  userName: String!
-  email: String!
-  profilePhoto: String
-  roles: [UserRole!]!
-  bio: String
-  isDeleted: Boolean!
-  deletedAt: String
-  createdAt: String!
-  updatedAt: String!
-  status: Boolean!
-  academicLevel: String
-  interests: [String!]
-  coach: User
-}
-
 type Notification {
   _id: ID!
   recipients: [ID!]!
@@ -117,8 +85,8 @@ type Assignment {
   dueDate: DateTime!
   assignmentType: AssignmentType!
   classRoom: ClassRoom
-  students: [Student!]
-  coach: Coach!
+  students: [User!]
+  coach: User!
   status: AssignmentStatus!
   priority: AssignmentPriority
   visibility: AssignmentVisibility
@@ -160,8 +128,8 @@ type ClassRoom {
   _id: ID!
   name: String!
   description: String!
-  coach: Coach!
-  students: [Student!]!
+  coach: User!
+  students: [User!]!
   assignments: [Assignment!]!
   createdAt: String!
   updatedAt: String!
@@ -174,6 +142,7 @@ type Query {
   getStudent: [User!]!
   getCoachingRequest(input: GetCoachingRequestInput!): [CoachingRequest!]!
   getCoach: [User!]!
+  getCoachedStudents: [User!]!
   getNotification: [Notification!]!
   getClass: String!
 }

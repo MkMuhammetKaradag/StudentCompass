@@ -9,6 +9,7 @@ export enum CoachCommands {
   UPDATE_COACHING_REQUEST_STATUS = 'update_coaching_request_status',
   GET_COACHING_REQUEST = 'get_coaching_request',
   GET_COACH = 'get_coach',
+  GET_COACHED_STUDENTS = 'get_coached_students',
 }
 
 export enum UserCommands {

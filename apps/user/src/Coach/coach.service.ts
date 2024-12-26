@@ -1,14 +1,13 @@
 import {
-  CoachDocument,
+ 
   CoachingRequest,
   CoachingRequestDocument,
   CoachingRequestStatus,
-  CoachSchema,
+ 
   GetCoachingRequestInput,
   NotificationCommands,
   NotificationType,
-  StudentDocument,
-  StudentSchema,
+
   User,
   UserDocument,
   UserRole,
@@ -23,9 +22,7 @@ import { Model, Types } from 'mongoose';
 export class CoachService {
   constructor(
     @InjectModel(User.name, 'user') private userModel: Model<UserDocument>,
-    @InjectModel(User.name, 'user') private coachModel: Model<CoachDocument>,
-    @InjectModel(User.name, 'user')
-    private studentModel: Model<StudentDocument>,
+
     @InjectModel(CoachingRequest.name, 'user')
     private coachingRequestModel: Model<CoachingRequestDocument>,
     @Inject('NOTIFICATION_SERVICE')
@@ -56,6 +53,7 @@ export class CoachService {
           {
             _id: requestId,
             status: CoachingRequestStatus.PENDING,
+            coach: new Types.ObjectId(currentUserId),
           },
           { status },
           { new: true },
@@ -102,10 +100,10 @@ export class CoachService {
           message: ` Coaching requests for user ${student.userName} have been cancelled`,
           notificationType: NotificationType.INFO,
         });
-        await this.userModel.findByIdAndUpdate(request.coach, {
+        const asd = await this.userModel.findByIdAndUpdate(request.coach, {
           $addToSet: { coachedStudents: request.student },
         });
-
+        console.log('update', asd);
         await this.userModel.findByIdAndUpdate(request.student, {
           coach: request.coach,
         });
@@ -125,7 +123,7 @@ export class CoachService {
     const { currentUserId, payload } = input;
 
     // Find user and validate existence
-    const user = await this.coachModel.findById(currentUserId);
+    const user = await this.userModel.findById(currentUserId);
     if (!user) {
       this.handleError('User not found.', HttpStatus.NOT_FOUND);
     }
@@ -154,11 +152,26 @@ export class CoachService {
   }
 
   async getCoach(input: WithCurrentUserId) {
-    const coach = await this.coachModel.find({
+    const coach = await this.userModel.find({
       roles: {
         $in: UserRole.COACH,
       },
     });
     return coach;
+  }
+
+  async getCoachedStudents(input: WithCurrentUserId) {
+    const { currentUserId } = input;
+    const coach = await this.userModel.findById(currentUserId).populate({
+      path: 'coachedStudents',
+      select: 'userName _id profilePhoto email firstName ',
+      model: 'User',
+    });
+    // .populate('coachedStudents');
+
+    if (!coach) {
+      this.handleError('Coach not found.', HttpStatus.NOT_FOUND);
+    }
+    return coach.coachedStudents;
   }
 }

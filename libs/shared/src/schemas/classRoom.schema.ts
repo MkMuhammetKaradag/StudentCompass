@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Field, ObjectType, ID } from '@nestjs/graphql';
-import { Coach } from './coach.schema';
-import { Student } from './student.schema';
+
 import { Assignment } from './assignment.schema';
+import { User } from './user.schema';
 
 export type ClassRoomDocument = ClassRoom & Document;
 
@@ -21,13 +21,13 @@ export class ClassRoom {
   @Field()
   description: string;
 
-  @Prop({ type: String, required: true })
-  @Field(() => Coach)
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Field(() => User)
   coach: string; // Sınıfı oluşturan koçun ID'si
 
-  @Prop({ type: [String], default: [] })
-  @Field(() => [Student])
-  students: string[]; // Sınıfa kayıtlı öğrenciler
+  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  @Field(() => [User])
+  students: Types.ObjectId[]; // Sınıfa kayıtlı öğrenciler
 
   @Prop({ type: [String], default: [] })
   @Field(() => [Assignment])

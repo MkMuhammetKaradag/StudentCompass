@@ -1,7 +1,6 @@
 export * from './shared.module';
 export * from './shared.service';
 
-
 //Utils
 export * from './utils/parseCookies';
 
@@ -50,8 +49,7 @@ export * from './modules/pubSub.module';
 
 //Schema
 export * from './schemas/user.schema';
-export * from './schemas/coach.schema';
-export * from './schemas/student.schema';
+
 export * from './schemas/passwordReset.schema';
 export * from './schemas/coachingRequest.schema';
 export * from './schemas/notification.schema';
@@ -68,7 +66,6 @@ export * from './common/decorators/user.decorator';
 export * from './common/guards/role.guard';
 //Common End
 //Models
-export * from './models/userModels';
 
 // export * from './common/middleware/session.middleware';
 export * from './modules/redis.module';

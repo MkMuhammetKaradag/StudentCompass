@@ -6,10 +6,10 @@ export class BroadcastController implements OnModuleInit {
   constructor(private readonly broadcastConsumer: BroadcastConsumerService) {}
 
   async onModuleInit() {
-    await this.broadcastConsumer.consume('notification', (message) => {
-      console.log('User service received:', message);
-      // İşlemlerinizi burada yapın
-    });
+    // await this.broadcastConsumer.consume('notification', (message) => {
+    //   console.log('User service received:', message);
+    //   // İşlemlerinizi burada yapın
+    // });
   }
 
   private savedUser(data: any) {

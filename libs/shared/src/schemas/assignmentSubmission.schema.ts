@@ -2,9 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { Field, ObjectType, ID, registerEnumType } from '@nestjs/graphql';
 import { ClassRoom } from './classRoom.schema';
-import { Student } from './student.schema';
-import { Coach } from './coach.schema';
+
 import { Assignment, AssignmentStatus } from './assignment.schema';
+import { User } from './user.schema';
 @Schema({ timestamps: true })
 @ObjectType()
 export class AssignmentSubmission {
@@ -15,7 +15,7 @@ export class AssignmentSubmission {
   @Prop({ type: Types.ObjectId, ref: 'Assignment', required: true })
   assignment: Types.ObjectId;
 
-  @Field(() => Student)
+  @Field(() => User)
   @Prop({ type: String })
   student: string;
 
@@ -59,7 +59,7 @@ export class AssignmentSubmission {
   @Prop({ type: Date })
   gradedAt?: Date;
 
-  @Field(() => Coach, { nullable: true })
+  @Field(() => User, { nullable: true })
   @Prop({ type: String })
   gradedBy?: string;
 }

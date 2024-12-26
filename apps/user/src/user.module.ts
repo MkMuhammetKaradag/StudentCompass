@@ -2,16 +2,16 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import {
-  Coach,
+
   CoachingRequest,
   CoachingRequestSchema,
-  CoachSchema,
+
   MongoDBModule,
   PubSubModule,
   SharedModule,
   SharedService,
-  Student,
-  StudentSchema,
+
+
   User,
   UserSchema,
 } from '@app/shared';
@@ -63,9 +63,9 @@ export class UserModule implements OnModuleInit {
   constructor(private readonly consumerService: BroadcastConsumerService) {}
 
   async onModuleInit() {
-    await this.consumerService.consume('user', (message) => {
-      console.log('User service received:', message);
-      // İşlemlerinizi burada yapın
-    });
+    // await this.consumerService.consume('user', (message) => {
+    //   console.log('User service received:', message);
+    //   // İşlemlerinizi burada yapın
+    // });
   }
 }

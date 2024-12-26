@@ -1,13 +1,12 @@
 import {
   CancelMyCoachingRequestInput,
-  Coach,
-  CoachDocument,
+
   CoachingRequest,
   CoachingRequestDocument,
   CoachingRequestStatus,
   GetMyCoachingRequestInput,
   SendCoachingRequestInput,
-  StudentDocument,
+ 
   User,
   UserDocument,
   UserRole,
@@ -22,9 +21,7 @@ import { model, Model, Types } from 'mongoose';
 export class StudentService {
   constructor(
     @InjectModel(User.name, 'user') private userModel: Model<UserDocument>,
-    @InjectModel(User.name, 'user') private coachModel: Model<CoachDocument>,
-    @InjectModel(User.name, 'user')
-    private studentModel: Model<StudentDocument>,
+
     @InjectModel(CoachingRequest.name, 'user')
     private coachingRequestModel: Model<CoachingRequestDocument>,
   ) {}
@@ -47,7 +44,7 @@ export class StudentService {
       const { currentUserId, payload } = input;
 
       // 1. Öğrencinin mevcut bir koçu olup olmadığını kontrol et
-      const existingUser = await this.studentModel.findById(currentUserId);
+      const existingUser = await this.userModel.findById(currentUserId);
       if (!existingUser) {
         this.handleError('User not found', HttpStatus.NOT_FOUND);
       }
@@ -91,12 +88,12 @@ export class StudentService {
   }
 
   async getStudent() {
-    const student = await this.studentModel.find({
+    const student = await this.userModel.find({
       roles: {
         $in: UserRole.STUDENT,
       },
     });
-
+    console.log(student);
     return student;
   }
 

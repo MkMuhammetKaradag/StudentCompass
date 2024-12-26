@@ -178,11 +178,6 @@ export class AuthResolver {
     const { req, res, session } = context;
     console.log('session-redis', session);
 
-    const message = { event: 'example_event', data: 'Hello from Publisher' };
-    await this.publisher.broadcast(ROUTING_KEYS.USER_NEW, { test: 'user new' });
-    await this.publisher.broadcast(ROUTING_KEYS.USER_LIKE, {
-      test: 'user like',
-    });
     return 'hello';
   }
 

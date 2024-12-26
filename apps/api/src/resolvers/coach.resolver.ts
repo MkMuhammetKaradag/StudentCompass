@@ -104,4 +104,13 @@ export class CoachResolver {
       currentUserId: user._id,
     });
   }
+
+  @Query(() => [User])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.ADMIN)
+  async getCoachedStudents(@CurrentUser() user: AuthUser) {
+    return this.sendCommand<User[]>(CoachCommands.GET_COACHED_STUDENTS, {
+      currentUserId: user._id,
+    });
+  }
 }

@@ -2,8 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { Field, ObjectType, ID, registerEnumType } from '@nestjs/graphql';
 import { ClassRoom } from './classRoom.schema';
-import { Student } from './student.schema';
-import { Coach } from './coach.schema';
+import { User } from './user.schema';
 
 export enum AssignmentStatus {
   PENDING = 'pending',
@@ -15,7 +14,7 @@ export enum AssignmentStatus {
 
 export enum AssignmentType {
   CLASS = 'class',
-  INDIVIDUAL= 'individual',
+  INDIVIDUAL = 'individual',
 }
 
 export enum AssignmentPriority {
@@ -91,10 +90,10 @@ export class Assignment {
       return this.assignmentType === AssignmentType.INDIVIDUAL;
     },
   })
-  @Field(() => [Student], { nullable: true })
+  @Field(() => [User], { nullable: true })
   students?: string[]; // Ödevin atanacağı öğrenciler (opsiyonel)
 
-  @Field(() => Coach)
+  @Field(() => User)
   @Prop({ type: String, required: true })
   coach: string; // Görev/Ödevi oluşturan koç (isteğe bağlı)
 
@@ -125,7 +124,6 @@ export class Assignment {
   @Field(() => [String], { nullable: true })
   @Prop({ type: [String], default: [] })
   tags?: string[]; // Görev/Ödev etiketleri (isteğe bağlı)
-
 
   @Field(() => Number, { nullable: true })
   timeBeforeDueDate?: number; // Teslim tarihine kalan süre (dinamik alan)

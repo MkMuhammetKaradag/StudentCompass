@@ -72,4 +72,13 @@ export class CoachController {
   ) {
     return this.handleMessage(context, () => this.coachService.getCoach(input));
   }
+
+  @MessagePattern({ cmd: CoachCommands.GET_COACHED_STUDENTS })
+  async getCoachedStudents(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId,
+  ) {
+    return this.handleMessage(context, () => this.coachService.getCoachedStudents(input));
+  }
 }
