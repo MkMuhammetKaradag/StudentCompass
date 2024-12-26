@@ -58,8 +58,8 @@ export class SharedModule {
         const connection = await amqp.connect(`amqp://${USER}:${PASS}@${HOST}`);
         const channel = await connection.createChannel();
 
-        const exchange = 'fanout_exchange';
-        await channel.assertExchange(exchange, 'fanout', { durable: true });
+        const exchange = 'broadcast.topic.exchange';
+        await channel.assertExchange(exchange, 'topic', { durable: true });
 
         return { channel, exchange };
       },

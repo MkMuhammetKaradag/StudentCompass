@@ -19,6 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { PasswordService } from './password.service';
 import { JwtHelperService } from './jwtHelper.service';
+import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
 
 @Module({
   imports: [
@@ -36,8 +37,11 @@ import { JwtHelperService } from './jwtHelper.service';
       inject: [ConfigService],
     }),
     SharedModule,
+    SharedModule.registerBroadcastExchange(),
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
+
     MongoDBModule.forRoot('AUTH', 'auth'),
+
     MongooseModule.forFeature(
       [
         { name: User.name, schema: UserSchema },
@@ -55,6 +59,7 @@ import { JwtHelperService } from './jwtHelper.service';
       provide: 'SharedServiceInterface',
       useClass: SharedService,
     },
+    BroadcastPublisherService,
   ],
 })
 export class AuthModule {}

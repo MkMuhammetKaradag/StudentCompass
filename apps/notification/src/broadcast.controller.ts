@@ -6,18 +6,14 @@ export class BroadcastController implements OnModuleInit {
   constructor(private readonly broadcastConsumer: BroadcastConsumerService) {}
 
   async onModuleInit() {
-    await this.broadcastConsumer.consume(
-      (msg: { event: string; data: any }) => {
-        if (msg.event === 'new-user') {
-          console.log('New user created');
-          this.savedUser();
-        }
-      },
-    );
+    await this.broadcastConsumer.consume('notification', (message) => {
+      console.log('User service received:', message);
+      // İşlemlerinizi burada yapın
+    });
   }
 
-  private savedUser() {
-    console.log('savedUser runing');
+  private savedUser(data: any) {
+    console.log('savedUser runing', data);
   }
 
   //   @Get('consume')

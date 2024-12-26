@@ -3,7 +3,6 @@ import {
   PasswordReset,
   PasswordResetDocument,
   PUB_SUB,
-  RedisService,
   SignInput,
   SignUpInput,
   User,
@@ -14,29 +13,25 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { GraphQLError } from 'graphql';
-import { JwtService } from '@nestjs/jwt';
 import { PasswordService } from './password.service';
 import { JwtHelperService } from './jwtHelper.service';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { RpcException } from '@nestjs/microservices';
 import { v4 as uuidv4 } from 'uuid';
-const BCRYPT_SALT_ROUNDS = 12;
+import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
 const ACTIVATION_CODE_LENGTH = 4;
 const ACTIVATION_TOKEN_EXPIRY = '5m';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name, 'auth')
-    private userModel: Model<UserDocument>, // AUTH veritabanından User modeli
+    private userModel: Model<UserDocument>,
     @InjectModel(PasswordReset.name, 'auth')
     private passwordResetModel: Model<PasswordResetDocument>,
-
-    // private readonly jwtService: JwtService,
     private readonly passwordService: PasswordService,
     private readonly jwtHelper: JwtHelperService,
-    private redisService: RedisService,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
+    private readonly broadcastService: BroadcastPublisherService,
   ) {}
   private handleError(
     message: string,
@@ -47,24 +42,8 @@ export class AuthService {
       message,
       statusCode: HttpStatus.CONFLICT,
     });
-    // throw new GraphQLError(message, {
-    //   extensions: {
-    //     code: statusCode,
-    //     error,
-    //   },
-    // });
   }
-  // async hashPassword(password: string): Promise<string> {
-  //   try {
-  //     return await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
-  //   } catch (error) {
-  //     this.handleError(
-  //       'Failed to hash password',
-  //       HttpStatus.INTERNAL_SERVER_ERROR,
-  //       error,
-  //     );
-  //   }
-  // }
+
   private async findUserByEmail(
     email: string,
     userName?: string,
@@ -124,14 +103,6 @@ export class AuthService {
         { user, activationCode },
         { expiresIn: ACTIVATION_TOKEN_EXPIRY },
       );
-      // this.jwtService.signAsync(
-      //   { user, activationCode },
-      //   { expiresIn: ACTIVATION_TOKEN_EXPIRY },
-      // );
-
-      // await this.emailService.send({
-      // email send micro service send
-      // });
 
       console.log(activationCode);
       return token;
@@ -163,7 +134,9 @@ export class AuthService {
       );
 
       const user = new this.userModel(activationData.user);
-      return await user.save();
+      const savedUser = await user.save();
+      this.broadcastEvent('', '');
+      return savedUser;
     } catch (error) {
       console.log(error);
       this.handleError(
@@ -374,5 +347,12 @@ export class AuthService {
     await this.passwordResetModel.findByIdAndDelete(passwordReset._id);
 
     return 'Password successfully reset';
+  }
+
+  async broadcastEvent(event: string, data: any) {
+    this.broadcastService.publish('', {
+      event,
+      data,
+    });
   }
 }

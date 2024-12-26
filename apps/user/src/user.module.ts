@@ -63,8 +63,9 @@ export class UserModule implements OnModuleInit {
   constructor(private readonly consumerService: BroadcastConsumerService) {}
 
   async onModuleInit() {
-    await this.consumerService.consume((msg) => {
-      console.log('Processed broadcast message:', msg);
+    await this.consumerService.consume('user', (message) => {
+      console.log('User service received:', message);
+      // İşlemlerinizi burada yapın
     });
   }
 }
