@@ -9,12 +9,13 @@ export const ROUTING_KEYS = {
 
 export const SERVICE_BINDINGS = {
   notification: [
-    ROUTING_KEYS.USER_NEW,
+    // ROUTING_KEYS.USER_NEW,
     ROUTING_KEYS.USER_LIKE,
     ROUTING_KEYS.CHAT_MESSAGE,
   ],
-  user: [ROUTING_KEYS.USER_NEW],
+  user: [ROUTING_KEYS.USER_LIKE],
   chat: [ROUTING_KEYS.CHAT_MESSAGE],
+  classRoom: [ROUTING_KEYS.USER_NEW],
 } as const;
 
 @Injectable()

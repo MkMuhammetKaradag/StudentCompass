@@ -9,6 +9,7 @@ async function bootstrap() {
   const sharedService = app.get(SharedService);
   const port = configService.get('CLASS_PORT');
   app.connectMicroservice(sharedService.getRmqOptions('CLASSROOME'));
+  app.connectMicroservice(sharedService.getRmqOptions('BROADCAST'));
 
   app.startAllMicroservices();
   await app.listen(port);

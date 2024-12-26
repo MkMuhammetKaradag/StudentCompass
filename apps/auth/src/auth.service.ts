@@ -19,6 +19,7 @@ import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { RpcException } from '@nestjs/microservices';
 import { v4 as uuidv4 } from 'uuid';
 import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
+import { ROUTING_KEYS } from '@app/shared/services/broadcast.consumer.service';
 const ACTIVATION_CODE_LENGTH = 4;
 const ACTIVATION_TOKEN_EXPIRY = '5m';
 @Injectable()
@@ -135,7 +136,11 @@ export class AuthService {
 
       const user = new this.userModel(activationData.user);
       const savedUser = await user.save();
-      this.broadcastEvent('', '');
+      delete activationData.user.password;
+      this.broadcastEvent(ROUTING_KEYS.USER_NEW, {
+        _id: user._id,
+        ...activationData.user,
+      });
       return savedUser;
     } catch (error) {
       console.log(error);
@@ -349,10 +354,7 @@ export class AuthService {
     return 'Password successfully reset';
   }
 
-  async broadcastEvent(event: string, data: any) {
-    this.broadcastService.publish('', {
-      event,
-      data,
-    });
+  async broadcastEvent(routingKey: keyof typeof ROUTING_KEYS, data: any) {
+    this.broadcastService.broadcast(routingKey, data);
   }
 }

@@ -46,27 +46,6 @@ export class NotificationController {
     );
   }
 
-  // @MessagePattern({ cmd: NotificationCommands.SEND_NOTIFICATION })
-  // async sendNotification(
-  //   @Ctx() context: RmqContext,
-  //   @Payload()
-  //   payload: {
-  //     senderId: string;
-  //     recipientIds: string[];
-  //     message: string;
-  //     type?: NotificationType;
-  //   },
-  // ) {
-  //   return this.handleMessage(context, () =>
-  //     this.notificationService.sendNotification(
-  //       payload.senderId,
-  //       payload.recipientIds,
-  //       payload.message,
-  //       payload.type,
-  //     ),
-  //   );
-  // }
-
   @EventPattern(NotificationCommands.SEND_NOTIFICATION)
   async sendNotification(
     @Ctx() context: RmqContext,
@@ -78,15 +57,6 @@ export class NotificationController {
       type?: NotificationType;
     },
   ) {
-    // return this.handleMessage(context, () =>
-    //   this.notificationService.sendNotification(
-    //     payload.senderId,
-    //     payload.recipientIds,
-    //     payload.message,
-    //     payload.type,
-    //   ),
-    // );
-
     try {
       await this.notificationService.sendNotification(
         payload.senderId,
@@ -98,22 +68,6 @@ export class NotificationController {
     } catch (error) {
       console.error('Error processing message:', error);
       this.sharedService.acknowledgeMessage(context);
-      throw error;
-    }
-  }
-
-  @EventPattern({ cmd: 'broadcast_pattern' })
-  async test(
-    @Ctx() context: RmqContext,
-    @Payload()
-    input: any,
-  ) {
-    try {
-      console.log('input', input);
-      // this.sharedService.acknowledgeMessage(context);
-      return 'asa';
-    } catch (error) {
-      console.error('Error processing message:', error);
       throw error;
     }
   }

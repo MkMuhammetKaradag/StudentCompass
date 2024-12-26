@@ -17,6 +17,7 @@ export class BroadcastPublisherService {
 
     try {
       const message = {
+        routingKey,
         data,
         timestamp: new Date().toISOString(),
       };

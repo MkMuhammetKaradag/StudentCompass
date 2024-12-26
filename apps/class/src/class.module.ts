@@ -10,9 +10,13 @@ import {
   PubSubModule,
   SharedModule,
   SharedService,
+  User,
+  UserSchema,
 } from '@app/shared';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BroadcastController } from './broadcast.controller';
+import { BroadcastConsumerService } from '@app/shared/services/broadcast.consumer.service';
 
 @Module({
   imports: [
@@ -22,6 +26,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     }),
 
     SharedModule,
+    SharedModule.registerBroadcastExchange(),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     MongoDBModule.forRoot('CLASSROOME', 'classRoome'),
 
@@ -29,13 +34,15 @@ import { MongooseModule } from '@nestjs/mongoose';
       [
         { name: ClassRoom.name, schema: ClassRoomSchema },
         { name: ClassRoomJoinLink.name, schema: ClassRoomJoinLinkSchema },
+        { name: User.name, schema: UserSchema },
       ],
       'classRoome',
     ),
   ],
-  controllers: [ClassController],
+  controllers: [ClassController, BroadcastController],
   providers: [
     ClassService,
+    BroadcastConsumerService,
     {
       provide: 'SharedServiceInterface',
       useClass: SharedService,

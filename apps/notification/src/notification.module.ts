@@ -39,11 +39,4 @@ import { BroadcastController } from './broadcast.controller';
   ],
 })
 export class NotificationModule {}
-// export class NotificationModule implements OnModuleInit {
-//   // constructor(private readonly consumerService: BroadcastConsumerService) {}
-//   // async onModuleInit() {
-//   //   await this.consumerService.consume((msg) => {
-//   //     console.log('Processed broadcast message:', msg);
-//   //   });
-//   // }
-// }
+
