@@ -23,7 +23,7 @@ export class ClassRoom {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   @Field(() => User)
-  coach: string; // Sınıfı oluşturan koçun ID'si
+  coach: Types.ObjectId; // Sınıfı oluşturan koçun ID'si
 
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
   @Field(() => [User])

@@ -31,18 +31,24 @@ export class BroadcastConsumerService {
 
   async consume(
     serviceName: keyof typeof SERVICE_BINDINGS,
-    callback: (msg: any) => void,
+    callback: (msg: any) => Promise<void>,
   ) {
     const { channel, exchange } = this.consumerProvider;
 
     try {
       // Servis için özel kuyruk oluştur
       const queueName = `queue.${serviceName}`;
+      const queueNameRetry = `queue.${serviceName}.retry`;
       const { queue } = await channel.assertQueue(queueName, {
         durable: true,
         exclusive: false,
       });
-
+      await channel.assertQueue(queueNameRetry, {
+        durable: true,
+        deadLetterExchange: '', // Mesajın döneceği exchange (varsayılan exchange kullanılır)
+        deadLetterRoutingKey: queueName, // Mesajın döneceği kuyruk
+        messageTtl: 10000, // 10 saniye (ms cinsinden)
+      });
       // Önceki binding'leri temizle
       await channel.unbindQueue(queue, exchange, '*');
 
@@ -54,14 +60,31 @@ export class BroadcastConsumerService {
       }
 
       // Mesajları dinle
-      await channel.consume(queue, (msg) => {
+      await channel.consume(queue, async (msg) => {
         if (msg) {
           const content = JSON.parse(msg.content.toString());
           this.logger.debug(
             `[${serviceName}] Received message with routing key: ${msg.fields.routingKey}`,
           );
-          callback(content);
-          channel.ack(msg);
+          try {
+            await callback(content);
+            channel.ack(msg);
+          } catch (error) {
+            this.logger.error(
+              `Error processing message: ${error.message}`,
+              error,
+            );
+            const retryCount = msg.properties.headers['x-retry-count'] || 0;
+            // Mesajı retry kuyruğuna yönlendir
+            channel.sendToQueue('queue.classRoom.retry', msg.content, {
+              headers: {
+                ...msg.properties.headers,
+                'x-retry-count': retryCount + 1,
+              }, // Orijinal mesaj başlıklarını koru
+            });
+            channel.ack(msg); // Orijinal mesajı kuyruktan kaldır
+            // channel.nack(msg, false, true); // Mesaj tekrar kuyruğa eklenir
+          }
         }
       });
     } catch (error) {
@@ -69,35 +92,4 @@ export class BroadcastConsumerService {
       throw error;
     }
   }
-
-  // async consumeEvents(
-  //   serviceName: keyof typeof EventPatterns,
-  //   messageHandler: (routingKey: string, data: any) => void,
-  // ) {
-  //   const { channel, exchange } = this.consumerProvider;
-
-  //   // Servis için kalıcı kuyruk oluştur
-  //   const queueName = `broadcast_queue_${serviceName.toLowerCase()}`;
-  //   console.log(queueName);
-  //   const queue = await channel.assertQueue(queueName, {
-  //     durable: true,
-  //     exclusive: false,
-  //   });
-
-  //   // Servisin dinlemesi gereken tüm pattern'ları bind et
-  //   for (const pattern of EventPatterns[serviceName]) {
-  //     console.log(pattern);
-  //     await channel.bindQueue(queue.queue, exchange, pattern);
-  //   }
-
-  //   // Mesajları dinle
-  //   channel.consume(queue.queue, (message) => {
-  //     if (message !== null) {
-  //       const content = JSON.parse(message.content.toString());
-  //       // Routing key ve data'yı handler'a gönder
-  //       messageHandler(message.fields.routingKey, content.data);
-  //       channel.ack(message);
-  //     }
-  //   });
-  // }
 }

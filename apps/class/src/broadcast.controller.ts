@@ -4,7 +4,8 @@ import {
   ROUTING_KEYS,
   SERVICE_BINDINGS,
 } from '@app/shared/services/broadcast.consumer.service';
-import { Controller, OnModuleInit } from '@nestjs/common';
+import { Controller, HttpStatus, OnModuleInit } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
@@ -17,12 +18,12 @@ export class BroadcastController implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.broadcastConsumer.consume('classRoom', (message) => {
-      console.log('ClassRoom service received:', message);
+    await this.broadcastConsumer.consume('classRoom', async (message) => {
+      // console.log('ClassRoom service received:', message);
       if (this.isRoutingKeyForService(message.routingKey, 'classRoom')) {
         switch (message.routingKey) {
           case ROUTING_KEYS.USER_NEW:
-            this.savedUser(message.data);
+            await this.savedUser(message.data);
             break;
           default:
             console.warn(
@@ -41,6 +42,20 @@ export class BroadcastController implements OnModuleInit {
   ): boolean {
     return SERVICE_BINDINGS[service].includes(routingKey as never);
   }
+  private handleError(
+    message: string,
+    statusCode: HttpStatus,
+    error?: any,
+  ): never {
+    throw new RpcException(
+      error
+        ? error
+        : {
+            message,
+            statusCode,
+          },
+    );
+  }
   private async savedUser(input: User) {
     try {
       const user = new this.userModel({
@@ -53,7 +68,11 @@ export class BroadcastController implements OnModuleInit {
       });
       await user.save();
     } catch (error) {
-      console.error(error);
+      this.handleError(
+        'Error saving user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+      );
     }
   }
 }
