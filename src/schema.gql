@@ -55,27 +55,15 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type SignUpObject {
-  activationToken: String!
-}
-
-type Notification {
+type ClassRoom {
   _id: ID!
-  recipients: [ID!]!
-  sender: User!
-  message: String!
-  type: NotificationType!
-  isRead: Boolean!
-  createdAt: DateTime!
-  readAt: DateTime
-}
-
-"""notification  type"""
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
+  name: String!
+  description: String!
+  coach: User!
+  students: [User!]!
+  assignments: [Assignment!]!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type Assignment {
@@ -124,15 +112,27 @@ enum AssignmentVisibility {
   TEAM
 }
 
-type ClassRoom {
+type SignUpObject {
+  activationToken: String!
+}
+
+type Notification {
   _id: ID!
-  name: String!
-  description: String!
-  coach: User!
-  students: [User!]!
-  assignments: [Assignment!]!
-  createdAt: String!
-  updatedAt: String!
+  recipients: [ID!]!
+  sender: User!
+  message: String!
+  type: NotificationType!
+  isRead: Boolean!
+  createdAt: DateTime!
+  readAt: DateTime
+}
+
+"""notification  type"""
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
 }
 
 type Query {
@@ -171,6 +171,7 @@ type Mutation {
   createClassRoomJoinLink(input: CreateClassRoomJoinLinkInput!): String!
   joinClassRoom(token: String!): ClassRoom!
   leaveClassRoom(classRoomId: String!): String!
+  createAssignment(input: CreateAssignmentInput!): Assignment!
 }
 
 input SignUpInput {
@@ -219,6 +220,20 @@ input CreateClassInput {
 input CreateClassRoomJoinLinkInput {
   duration: Float! = 10
   classRoomId: String!
+}
+
+input CreateAssignmentInput {
+  title: String!
+  description: String
+  dueDate: DateTime!
+  assignmentType: AssignmentType!
+  classRoom: String
+  students: [String!]
+  status: AssignmentStatus
+  priority: AssignmentPriority
+  visibility: AssignmentVisibility
+  tags: [String!]
+  attachments: [String!]
 }
 
 type Subscription {

@@ -20,6 +20,7 @@ import { CoachResolver } from './resolvers/coach.resolver';
 import { NotificationResolver } from './resolvers/notification.resolver';
 import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
 import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
+import { AssignmentResolver } from './resolvers/assignment.resolver';
 @Module({
   imports: [
     RedisModule,
@@ -28,6 +29,7 @@ import { BroadcastPublisherService } from '@app/shared/services/broadcast.publis
     SharedModule.registerRmq('USER_SERVICE', 'USER'),
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
     SharedModule.registerRmq('CLASSROOME_SERVICE', 'CLASSROOME'),
+    SharedModule.registerRmq('ASSIGNMENT_SERVICE', 'ASSIGNMENT'),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     SharedModule.registerBroadcastExchange(),
     GraphQLModule.forRootAsync({
@@ -120,6 +122,7 @@ import { BroadcastPublisherService } from '@app/shared/services/broadcast.publis
     CoachResolver,
     NotificationResolver,
     ClassRoomeResolver,
+    AssignmentResolver,
   ],
 })
 export class AppModule {}

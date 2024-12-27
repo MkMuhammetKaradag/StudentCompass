@@ -63,6 +63,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/class/tsconfig.app.json"
       }
+    },
+    "assignment": {
+      "type": "application",
+      "root": "apps/assignment",
+      "entryFile": "main",
+      "sourceRoot": "apps/assignment/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/assignment/tsconfig.app.json"
+      }
     }
   }
 }

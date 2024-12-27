@@ -85,17 +85,18 @@ export class Assignment {
   classRoom?: Types.ObjectId;
 
   @Prop({
-    type: [String],
+    type: [Types.ObjectId],
+    ref: 'User',
     required: function () {
       return this.assignmentType === AssignmentType.INDIVIDUAL;
     },
   })
   @Field(() => [User], { nullable: true })
-  students?: string[]; // Ödevin atanacağı öğrenciler (opsiyonel)
+  students?: Types.ObjectId[]; // Ödevin atanacağı öğrenciler (opsiyonel)
 
   @Field(() => User)
-  @Prop({ type: String, required: true })
-  coach: string; // Görev/Ödevi oluşturan koç (isteğe bağlı)
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  coach: Types.ObjectId; // Görev/Ödevi oluşturan koç (isteğe bağlı)
 
   @Field(() => AssignmentStatus)
   @Prop({

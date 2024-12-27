@@ -23,8 +23,11 @@ export * from './Type/Input/User/Student/CancelMyCoachingRequestInput';
 //Coach Input Start
 export * from './Type/Input/User/Coach/UpdateCoachingRequestInput';
 export * from './Type/Input/User/Coach/GetCoachingRequestInput';
-
 //Coach Input End
+
+//Assignment Input Start
+export * from './Type/Input/Assignment/CreateAssignmentInput';
+//Assignment ınput end
 
 //Class Input start
 export * from './Type/Input/Class/CreateClassInput';
@@ -38,7 +41,7 @@ export * from './Type/Object/Auth/SignInObject';
 export * from './Type/Enum/auth';
 export * from './Type/Enum/user';
 export * from './Type/Enum/class';
-
+export * from './Type/Enum/assignment';
 export * from './Type/request/user';
 //Type End
 

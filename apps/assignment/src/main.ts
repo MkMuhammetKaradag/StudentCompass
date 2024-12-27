@@ -1,0 +1,17 @@
+import { NestFactory } from '@nestjs/core';
+import { AssignmentModule } from './assignment.module';
+import { ConfigService } from '@nestjs/config';
+import { SharedService } from '@app/shared';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AssignmentModule);
+  const configService = app.get(ConfigService);
+  const sharedService = app.get(SharedService);
+  const port = configService.get('ASSIGNMENT_PORT');
+  app.connectMicroservice(sharedService.getRmqOptions('ASSIGNMENT'));
+  app.connectMicroservice(sharedService.getRmqOptions('BROADCAST'));
+
+  app.startAllMicroservices();
+  await app.listen(port);
+}
+bootstrap();

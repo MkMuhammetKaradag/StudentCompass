@@ -76,11 +76,11 @@ export class BroadcastConsumerService {
             );
             const retryCount = msg.properties.headers['x-retry-count'] || 0;
             // Mesajı retry kuyruğuna yönlendir
-            channel.sendToQueue('queue.classRoom.retry', msg.content, {
+            channel.sendToQueue(queueNameRetry, msg.content, {
               headers: {
                 ...msg.properties.headers,
                 'x-retry-count': retryCount + 1,
-              }, // Orijinal mesaj başlıklarını koru
+              },
             });
             channel.ack(msg); // Orijinal mesajı kuyruktan kaldır
             // channel.nack(msg, false, true); // Mesaj tekrar kuyruğa eklenir

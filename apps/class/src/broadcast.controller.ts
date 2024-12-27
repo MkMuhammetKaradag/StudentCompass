@@ -63,6 +63,7 @@ export class BroadcastController implements OnModuleInit {
         firstName: input.firstName,
         lastName: input.lastName,
         email: input.email,
+        roles: input.roles,
         userName: input.userName,
         password: 'notification_service',
       });
