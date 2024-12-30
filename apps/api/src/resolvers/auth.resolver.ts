@@ -44,6 +44,8 @@ export class AuthResolver {
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private readonly publisher: BroadcastPublisherService,
+    @Inject('EMAIL_SERVICE')
+    private readonly emailService: ClientProxy,
   ) {}
 
   /**
@@ -184,6 +186,17 @@ export class AuthResolver {
   @Query(() => User)
   @UseGuards(AuthGuard)
   async me(@Context() context, @CurrentUser() user: any) {
+    // this.emailService.emit(
+    //   {
+    //     cmd: 'forgot_password',
+    //   },
+    //   {
+    //     email: 'karadag2947@gmail.com',
+    //     template_name: 'forgot_password.html',
+    //     activation_code: 'http://localhost:3000/1234',
+    //     userName: 'karadag',
+    //   },
+    // );
     return user;
   }
 

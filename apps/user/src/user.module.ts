@@ -2,16 +2,12 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import {
-
   CoachingRequest,
   CoachingRequestSchema,
-
   MongoDBModule,
   PubSubModule,
   SharedModule,
   SharedService,
-
-
   User,
   UserSchema,
 } from '@app/shared';
@@ -22,6 +18,7 @@ import { StudentService } from './Student/student.service';
 import { CoachController } from './Coach/coach.controller';
 import { CoachService } from './Coach/coach.service';
 import { BroadcastConsumerService } from '@app/shared/services/broadcast.consumer.service';
+import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
 
 @Module({
   imports: [
@@ -52,6 +49,7 @@ import { BroadcastConsumerService } from '@app/shared/services/broadcast.consume
     UserService,
     StudentService,
     CoachService,
+    BroadcastPublisherService,
     BroadcastConsumerService,
     {
       provide: 'SharedServiceInterface',

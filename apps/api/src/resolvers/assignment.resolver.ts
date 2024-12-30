@@ -50,6 +50,7 @@ export class AssignmentResolver {
         this.assignmentService.send({ cmd }, payload),
       );
     } catch (error) {
+      console.log(error);
       this.handleError(
         'An error occurred during the request.',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -66,11 +67,32 @@ export class AssignmentResolver {
     @Args('input')
     input: CreateAssignmentInput,
   ): Promise<Assignment> {
+    console.log('createAssignment');
     const data = await this.sendCommand<Assignment>(
       AssignmentCommands.CREATE_ASSIGNMENT,
       {
         currentUserId: user._id,
         payload: input,
+      },
+    );
+   
+    return data;
+  }
+
+  @Query(() => Assignment)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.ADMIN, UserRole.STUDENT)
+  async getAssignment(
+    @CurrentUser() user: AuthUser,
+    @Args('assignmentId') assignmentId: string,
+  ): Promise<Assignment> {
+    const data = await this.sendCommand<Assignment>(
+      AssignmentCommands.GET_ASSIGNMENT,
+      {
+        currentUserId: user._id,
+        payload: {
+          assignmentId,
+        },
       },
     );
 

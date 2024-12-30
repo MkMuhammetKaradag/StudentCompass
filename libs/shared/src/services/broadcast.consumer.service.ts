@@ -3,6 +3,7 @@ import * as amqp from 'amqplib';
 
 export const ROUTING_KEYS = {
   USER_NEW: 'USER_NEW',
+  USER_ADD_COACH: 'USER_ADD_COACH',
   USER_LIKE: 'USER_LIKE',
   CHAT_MESSAGE: 'CHAT_MESSAGE',
 } as const;
@@ -16,6 +17,7 @@ export const SERVICE_BINDINGS = {
   user: [ROUTING_KEYS.USER_LIKE],
   chat: [ROUTING_KEYS.CHAT_MESSAGE],
   classRoom: [ROUTING_KEYS.USER_NEW],
+  assignment: [ROUTING_KEYS.USER_ADD_COACH],
 } as const;
 
 @Injectable()

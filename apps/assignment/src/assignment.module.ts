@@ -6,6 +6,7 @@ import {
   AssignmentSchema,
   AssignmentSubmission,
   AssignmentSubmissionSchema,
+  BroadcastConsumerService,
   ClassRoom,
   ClassRoomSchema,
   MongoDBModule,
@@ -17,6 +18,7 @@ import {
 } from '@app/shared';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BroadcastController } from './broadcast.controller';
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     }),
     SharedModule,
     // SharedModule.registerBroadcastExchange(),
-    // SharedModule.registerRmq('ASSIGNMENT', 'ASSIGNMENT'),
+    SharedModule.registerBroadcastExchange(),
     MongoDBModule.forRoot('ASSIGNMENT', 'assignment'),
     MongooseModule.forFeature(
       [
@@ -38,9 +40,10 @@ import { MongooseModule } from '@nestjs/mongoose';
       'assignment',
     ),
   ],
-  controllers: [AssignmentController],
+  controllers: [AssignmentController, BroadcastController],
   providers: [
     AssignmentService,
+    BroadcastConsumerService,
     {
       provide: 'SharedServiceInterface',
       useClass: SharedService,

@@ -40,8 +40,22 @@ export class AssignmentController {
     @Payload()
     input: WithCurrentUserId<CreateAssignmentInput>,
   ) {
+    console.log('ASSİGNMET CONTROLELR');
     return this.handleMessage(context, () =>
       this.assignmentService.createAssignment(input),
+    );
+  }
+
+  @MessagePattern({ cmd: AssignmentCommands.GET_ASSIGNMENT })
+  async getAssignment(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      assignmentId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.assignmentService.getAssignment(input),
     );
   }
 }

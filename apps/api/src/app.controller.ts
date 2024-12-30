@@ -29,16 +29,6 @@ export class AppController {
       ),
     );
 
-    // this.emailService.emit(
-    //   {
-    //     cmd: 'send_email',
-    //   },
-    //   {
-    //     email: 'karadag2947@gmail.com',
-    //     activation_code: '1234',
-    //   },
-    // );
-
     console.log('gelen data :', data);
     res.send({ data });
     return data;

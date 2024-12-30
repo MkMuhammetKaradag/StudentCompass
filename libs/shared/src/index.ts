@@ -73,3 +73,5 @@ export * from './common/guards/role.guard';
 // export * from './common/middleware/session.middleware';
 export * from './modules/redis.module';
 export * from './services/redis.service';
+export * from './services/broadcast.publisher.service';
+export * from './services/broadcast.consumer.service';

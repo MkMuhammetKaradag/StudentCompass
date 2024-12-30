@@ -1,13 +1,12 @@
 import {
- 
+  BroadcastPublisherService,
   CoachingRequest,
   CoachingRequestDocument,
   CoachingRequestStatus,
- 
   GetCoachingRequestInput,
   NotificationCommands,
   NotificationType,
-
+  ROUTING_KEYS,
   User,
   UserDocument,
   UserRole,
@@ -27,6 +26,7 @@ export class CoachService {
     private coachingRequestModel: Model<CoachingRequestDocument>,
     @Inject('NOTIFICATION_SERVICE')
     private readonly notificationServiceClient: ClientProxy,
+    private readonly broadcastService: BroadcastPublisherService,
   ) {}
   private handleError(
     message: string,
@@ -100,12 +100,17 @@ export class CoachService {
           message: ` Coaching requests for user ${student.userName} have been cancelled`,
           notificationType: NotificationType.INFO,
         });
-        const asd = await this.userModel.findByIdAndUpdate(request.coach, {
-          $addToSet: { coachedStudents: request.student },
+        await this.userModel.findByIdAndUpdate(request.coach, {
+          $addToSet: { coachedStudents: request.student._id },
         });
-        console.log('update', asd);
+
         await this.userModel.findByIdAndUpdate(request.student, {
           coach: request.coach,
+        });
+
+        this.broadcastEvent(ROUTING_KEYS.USER_ADD_COACH, {
+          coachId: request.coach,
+          studentId: request.student._id,
         });
       }
 
@@ -161,6 +166,7 @@ export class CoachService {
   }
 
   async getCoachedStudents(input: WithCurrentUserId) {
+    console.log('naber');
     const { currentUserId } = input;
     const coach = await this.userModel.findById(currentUserId).populate({
       path: 'coachedStudents',
@@ -173,5 +179,9 @@ export class CoachService {
       this.handleError('Coach not found.', HttpStatus.NOT_FOUND);
     }
     return coach.coachedStudents;
+  }
+
+  async broadcastEvent(routingKey: keyof typeof ROUTING_KEYS, data: any) {
+    this.broadcastService.broadcast(routingKey, data);
   }
 }
