@@ -146,6 +146,7 @@ type Query {
   getNotification: [Notification!]!
   getClass: String!
   getAssignment(assignmentId: String!): Assignment!
+  getMyAssignments: [Assignment!]!
 }
 
 input GetMyCoachingRequestInput {

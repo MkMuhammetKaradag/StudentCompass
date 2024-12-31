@@ -73,5 +73,6 @@ export class BroadcastController implements OnModuleInit {
         error,
       );
     }
+    // console.log(input);
   }
 }

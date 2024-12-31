@@ -97,4 +97,77 @@ export class AssignmentService {
     console.log(assignment);
     return assignment;
   }
+
+  async getMyAssignments(input: WithCurrentUserId) {
+    const { currentUserId } = input;
+    const assignmetns = await this.assignmentModel.aggregate([
+      {
+        // 1. Adım: Öğrenciye atanmış bireysel ödevleri bul
+        $match: {
+          $or: [
+            { students: new Types.ObjectId(currentUserId) }, // Bireysel ödevler
+            { classRoom: { $exists: true } }, // Sınıf ödevleri (classRoom alanı var olanlar)
+          ],
+        },
+      },
+      {
+        // 2. Adım: Sınıf ödevleri için, öğrencinin dahil olduğu sınıfları kontrol et
+        $lookup: {
+          from: 'classrooms', // Sınıf koleksiyonu
+          localField: 'classRoom', // Assignment'taki classRoom alanı
+          foreignField: '_id', // ClassRoom'daki _id alanı
+          as: 'classRoomDetails', // classRoom bilgilerini taşıyacak alan
+        },
+      },
+      {
+        // 3. Adım: Öğrenci sınıfın bir parçası mı kontrol et
+        $addFields: {
+          isStudentInClass: {
+            $cond: [
+              {
+                $gt: [
+                  {
+                    $size: {
+                      $filter: {
+                        input: { $ifNull: ['$classRoomDetails', []] },
+                        as: 'classRoom',
+                        cond: {
+                          $in: [
+                            new Types.ObjectId(currentUserId),
+                            '$$classRoom.students',
+                          ],
+                        },
+                      },
+                    },
+                  },
+                  0,
+                ],
+              },
+              true,
+              false,
+            ],
+          },
+        },
+      },
+      {
+        // 4. Adım: İlgili olmayan sınıf ödevlerini kaldır
+        $match: {
+          $or: [
+            { students: new Types.ObjectId(currentUserId) }, // Bireysel ödevler
+            { isStudentInClass: true }, // Öğrencinin sınıfta olduğu ödevler
+          ],
+        },
+      },
+      {
+        // 5. Adım: Gereksiz alanları kaldır
+        $project: {
+          classRoomDetails: 0,
+          isStudentInClass: 0,
+        },
+      },
+    ]);
+
+
+    return assignmetns;
+  }
 }

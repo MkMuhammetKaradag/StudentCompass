@@ -11,18 +11,18 @@ services:
       - '15672:15672'
     env_file:
       - .env
-  mongo:
-    image: mongo:latest
-    ports:
-      - '27017:27017'
-  redis:
-    image: redis
-    env_file:
-      - .env
-    ports:
-      - 6379:6379
-    volumes:
-      - cache:/data
-volumes:
-  cache:
-    driver: local
+#   mongo:
+#     image: mongo:latest
+#     ports:
+#       - '27017:27017'
+#   redis:
+#     image: redis
+#     env_file:
+#       - .env
+#     ports:
+#       - 6379:6379
+#     volumes:
+#       - cache:/data
+# volumes:
+#   cache:
+#     driver: local

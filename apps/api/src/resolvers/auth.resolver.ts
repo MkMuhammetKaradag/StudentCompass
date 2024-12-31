@@ -43,9 +43,11 @@ export class AuthResolver {
     private redisService: RedisService,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-    private readonly publisher: BroadcastPublisherService,
+
     @Inject('EMAIL_SERVICE')
     private readonly emailService: ClientProxy,
+
+    private readonly broadcastService: BroadcastPublisherService,
   ) {}
 
   /**
@@ -197,6 +199,11 @@ export class AuthResolver {
     //     userName: 'karadag',
     //   },
     // );
+
+    // this.broadcastService.broadcast(ROUTING_KEYS.USER_NEW, {
+    //   coachId: 'request.coach',
+    //   studentId: 'request.student._id',
+    // });
     return user;
   }
 

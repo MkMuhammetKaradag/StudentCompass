@@ -56,7 +56,12 @@ export class BroadcastConsumerService {
 
       // Servis için tanımlı routing key'leri bağla
       const routingKeys = SERVICE_BINDINGS[serviceName];
+      if (!routingKeys) {
+        this.logger.warn(`No routing keys defined for service: ${serviceName}`);
+        return;
+      }
       for (const routingKey of routingKeys) {
+        console.log('first', routingKey);
         await channel.bindQueue(queue, exchange, routingKey);
         this.logger.log(`Bound ${serviceName} to ${routingKey}`);
       }
@@ -65,6 +70,15 @@ export class BroadcastConsumerService {
       await channel.consume(queue, async (msg) => {
         if (msg) {
           const content = JSON.parse(msg.content.toString());
+          const routingKey = msg.fields.routingKey;
+          if (!routingKeys.includes(routingKey as never)) {
+            this.logger.warn(
+              `Ignored message with unsupported routing key: ${routingKey}`,
+            );
+            channel.ack(msg);
+            return;
+          }
+
           this.logger.debug(
             `[${serviceName}] Received message with routing key: ${msg.fields.routingKey}`,
           );

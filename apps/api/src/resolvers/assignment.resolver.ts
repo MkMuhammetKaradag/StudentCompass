@@ -75,7 +75,7 @@ export class AssignmentResolver {
         payload: input,
       },
     );
-   
+
     return data;
   }
 
@@ -93,6 +93,21 @@ export class AssignmentResolver {
         payload: {
           assignmentId,
         },
+      },
+    );
+
+    return data;
+  }
+
+  @Query(() => [Assignment])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.ADMIN, UserRole.STUDENT)
+  async getMyAssignments(@CurrentUser() user: AuthUser): Promise<Assignment[]> {
+    console.log('sdsd');
+    const data = await this.sendCommand<Assignment[]>(
+      AssignmentCommands.GET_MY_ASSIGNMENTS,
+      {
+        currentUserId: user._id,
       },
     );
 
