@@ -1,15 +1,19 @@
 import {
   Assignment,
   AssignmentDocument,
+  AssignmentSubmission,
+  AssignmentSubmissionDocument,
   AssignmentType,
   ClassRoom,
   ClassRoomDocument,
   CreateAssignmentInput,
+  CreateAssignmentSubmissionInput,
   User,
   UserDocument,
   WithCurrentUserId,
 } from '@app/shared';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
@@ -24,7 +28,21 @@ export class AssignmentService {
 
     @InjectModel(User.name, 'assignment')
     private readonly userModel: Model<UserDocument>,
+
+    @InjectModel(AssignmentSubmission.name, 'assignment')
+    private readonly assignmentSubmissionModel: Model<AssignmentSubmissionDocument>,
   ) {}
+  private handleError(
+    message: string,
+    statusCode: HttpStatus,
+    error?: any,
+  ): never {
+    throw new RpcException({
+      message,
+      statusCode: statusCode,
+      error: error,
+    });
+  }
 
   private async validateCoachStudents(
     coachId: string,
@@ -167,7 +185,39 @@ export class AssignmentService {
       },
     ]);
 
-
     return assignmetns;
+  }
+
+  async submitAssignment(
+    input: WithCurrentUserId<CreateAssignmentSubmissionInput>,
+  ) {
+    const { currentUserId, payload } = input;
+    const assignment = await this.assignmentModel.findOne({
+      _id: payload.assignmentId,
+      $or: [
+        {
+          assignmentType: AssignmentType.INDIVIDUAL,
+          students: new Types.ObjectId(currentUserId),
+        },
+        {
+          assignmentType: AssignmentType.CLASS,
+          'classRoom.students': new Types.ObjectId(currentUserId),
+        },
+      ],
+    });
+
+    if (!assignment) {
+      this.handleError('assignment not found', HttpStatus.NOT_FOUND);
+    }
+
+
+    const assignmentSubmission = new this.assignmentSubmissionModel({
+      assignment: new Types.ObjectId(payload.assignmentId),
+      student: new Types.ObjectId(currentUserId),
+      attachments: payload.attachments,
+      description: payload.description,
+    });
+
+    return await assignmentSubmission.save();
   }
 }

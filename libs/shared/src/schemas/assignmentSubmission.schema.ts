@@ -1,10 +1,20 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { Field, ObjectType, ID, registerEnumType } from '@nestjs/graphql';
-import { ClassRoom } from './classRoom.schema';
 
-import { Assignment, AssignmentStatus } from './assignment.schema';
+import { Assignment } from './assignment.schema';
 import { User } from './user.schema';
+
+export enum AssignmentSubmissionStatus {
+  SUBMITTED = 'submitted',
+  GRADED = 'graded',
+  OVERDUE = 'overdue',
+}
+registerEnumType(AssignmentSubmissionStatus, {
+  name: 'AssignmentSubmissionStatus',
+  description: 'AssignmentSubmissionStatus  Status',
+});
+
 @Schema({ timestamps: true })
 @ObjectType()
 export class AssignmentSubmission {
@@ -16,16 +26,15 @@ export class AssignmentSubmission {
   assignment: Types.ObjectId;
 
   @Field(() => User)
-  @Prop({ type: String })
-  student: string;
-
-  // @Field(() => ClassRoom, { nullable: true })
-  // @Prop({ type: Types.ObjectId, ref: 'ClassRoom', required: false })
-  // classRoom?: Types.ObjectId;
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'User',
+  })
+  student: Types.ObjectId;
 
   @Field(() => String)
   @Prop({ type: String, required: true })
-  content: string;
+  description: string;
 
   @Field(() => [String])
   @Prop({ type: [String], default: [] })
@@ -43,13 +52,13 @@ export class AssignmentSubmission {
   @Prop({ type: Boolean, default: false })
   isLate: boolean;
 
-  @Field(() => AssignmentStatus)
+  @Field(() => AssignmentSubmissionStatus)
   @Prop({
     type: String,
-    enum: AssignmentStatus,
-    default: AssignmentStatus.PENDING,
+    enum: AssignmentSubmissionStatus,
+    default: AssignmentSubmissionStatus.SUBMITTED,
   })
-  status: AssignmentStatus;
+  status: AssignmentSubmissionStatus;
 
   @Field(() => Date)
   @Prop({ type: Date, default: Date.now })
@@ -60,8 +69,11 @@ export class AssignmentSubmission {
   gradedAt?: Date;
 
   @Field(() => User, { nullable: true })
-  @Prop({ type: String })
-  gradedBy?: string;
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'User',
+  })
+  gradedBy?: Types.ObjectId;
 }
 export type AssignmentSubmissionDocument = AssignmentSubmission & Document;
 export const AssignmentSubmissionSchema =

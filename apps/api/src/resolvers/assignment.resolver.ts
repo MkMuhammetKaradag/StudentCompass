@@ -1,9 +1,11 @@
 import {
   Assignment,
   AssignmentCommands,
+  AssignmentSubmission,
   AuthGuard,
   AuthUser,
   CreateAssignmentInput,
+  CreateAssignmentSubmissionInput,
   CurrentUser,
   PUB_SUB,
   RolesGuard,
@@ -25,6 +27,8 @@ export class AssignmentResolver {
   constructor(
     @Inject('ASSIGNMENT_SERVICE')
     private readonly assignmentService: ClientProxy,
+    @Inject('ASSIGNMENT_SERVICE_RPC')
+    private readonly assignmentRpcService: ClientProxy,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
@@ -47,7 +51,7 @@ export class AssignmentResolver {
   ): Promise<T> {
     try {
       return await firstValueFrom<T>(
-        this.assignmentService.send({ cmd }, payload),
+        this.assignmentRpcService.send({ cmd }, payload),
       );
     } catch (error) {
       console.log(error);
@@ -108,6 +112,24 @@ export class AssignmentResolver {
       AssignmentCommands.GET_MY_ASSIGNMENTS,
       {
         currentUserId: user._id,
+      },
+    );
+
+    return data;
+  }
+
+  @Mutation(() => AssignmentSubmission)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT)
+  async submitAssignment(
+    @CurrentUser() user: AuthUser,
+    @Args('input') input: CreateAssignmentSubmissionInput,
+  ): Promise<AssignmentSubmission> {
+    const data = await this.sendCommand<AssignmentSubmission>(
+      AssignmentCommands.SUBMIT_ASSIGNMENT,
+      {
+        currentUserId: user._id,
+        payload: input,
       },
     );
 

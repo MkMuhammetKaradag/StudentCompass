@@ -27,7 +27,6 @@ import { BroadcastController } from './broadcast.controller';
       isGlobal: true,
     }),
     SharedModule,
-    // SharedModule.registerBroadcastExchange(),
     SharedModule.registerBroadcastExchange(),
     MongoDBModule.forRoot('ASSIGNMENT', 'assignment'),
     MongooseModule.forFeature(

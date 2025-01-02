@@ -3,6 +3,7 @@ import { AssignmentService } from './assignment.service';
 import {
   AssignmentCommands,
   CreateAssignmentInput,
+  CreateAssignmentSubmissionInput,
   SharedService,
   WithCurrentUserId,
 } from '@app/shared';
@@ -66,6 +67,17 @@ export class AssignmentController {
   ) {
     return this.handleMessage(context, () =>
       this.assignmentService.getMyAssignments(input),
+    );
+  }
+
+  @MessagePattern({ cmd: AssignmentCommands.SUBMIT_ASSIGNMENT })
+  async submitAssignment(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<CreateAssignmentSubmissionInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.assignmentService.submitAssignment(input),
     );
   }
 }

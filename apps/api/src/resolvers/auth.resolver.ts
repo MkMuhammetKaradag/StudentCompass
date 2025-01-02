@@ -25,7 +25,7 @@ import {
 } from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { GraphQLError } from 'graphql';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, throwError, timeout } from 'rxjs';
 import { ChangeUserStatusObject } from '../types/Auth/Object/ChangeUserStatusObject';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { Request, Response } from 'express';
@@ -80,7 +80,15 @@ export class AuthResolver {
   }
   private async sendCommand<T>(cmd: AuthCommands, payload: any): Promise<T> {
     try {
-      return await firstValueFrom<T>(this.authService.send({ cmd }, payload));
+      return await firstValueFrom<T>(this.authService.send({ cmd }, payload).pipe(
+        timeout(5000),
+        catchError((error) => {
+          if (error.name === 'TimeoutError') {
+            return throwError(() => new Error('Request timed out.'));
+          }
+          return throwError(() => error);
+        }
+      )));
     } catch (error) {
       this.handleError(
         'An error occurred during the request.',

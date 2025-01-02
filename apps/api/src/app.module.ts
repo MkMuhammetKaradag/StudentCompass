@@ -29,7 +29,8 @@ import { AssignmentResolver } from './resolvers/assignment.resolver';
     SharedModule.registerRmq('USER_SERVICE', 'USER'),
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
     SharedModule.registerRmq('CLASSROOME_SERVICE', 'CLASSROOME'),
-    SharedModule.registerRmq('ASSIGNMENT_SERVICE', 'ASSIGNMENT'),
+    SharedModule.registerRmq('ASSIGNMENT_SERVICE', 'ASSIGNMENT', false),
+    SharedModule.registerRpcClient('ASSIGNMENT_SERVICE', 'ASSIGNMENT'),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
     SharedModule.registerBroadcastExchange(),
     GraphQLModule.forRootAsync({
@@ -51,7 +52,6 @@ import { AssignmentResolver } from './resolvers/assignment.resolver';
           }
           // console.log('app.module:', req.session);
           return { req, res };
-          // return { req, res };
         },
         subscriptions: {
           'graphql-ws': true,

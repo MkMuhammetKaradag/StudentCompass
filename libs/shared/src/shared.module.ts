@@ -18,7 +18,11 @@ import * as amqp from 'amqplib';
   exports: [SharedService],
 })
 export class SharedModule {
-  static registerRmq(service: string, queueName: string): DynamicModule {
+  static registerRmq(
+    service: string,
+    queueName: string,
+    defaultPersistence: boolean = true,
+  ): DynamicModule {
     const provider = {
       provide: service,
       useFactory: (configService: ConfigService) => {
@@ -33,6 +37,8 @@ export class SharedModule {
             urls: [`amqp://${USER}:${PASS}@${HOST}`],
             // urls: [URI],
             queue: QUEUE,
+            persistent: defaultPersistence, // Varsayılan kalıcılık ayarı
+
             queueOptions: {
               durable: true,
             },
@@ -41,6 +47,40 @@ export class SharedModule {
       },
       inject: [ConfigService],
     };
+    return {
+      module: SharedModule,
+      providers: [provider],
+      exports: [provider],
+    };
+  }
+
+  static registerRpcClient(service: string, queueName: string): DynamicModule {
+    const provider = {
+      provide: `${service}_RPC`,
+      useFactory: (configService: ConfigService) => {
+        const USER = configService.get<string>('RABBITMQ_USER');
+        const PASS = configService.get<string>('RABBITMQ_PASS');
+        const HOST = configService.get<string>('RABBITMQ_HOST');
+        const QUEUE = configService.get<string>(`RABBITMQ_${queueName}_RPC_QUEUE`);
+
+        return ClientProxyFactory.create({
+          transport: Transport.RMQ,
+          options: {
+            urls: [`amqp://${USER}:${PASS}@${HOST}`],
+            queue: QUEUE,
+            queueOptions: {
+              durable: false,
+              autoDelete: true,
+              expires: 1000,
+              messageTtl: 1000
+            },
+            noAssert: true,
+          },
+        });
+      },
+      inject: [ConfigService],
+    };
+
     return {
       module: SharedModule,
       providers: [provider],
@@ -72,4 +112,7 @@ export class SharedModule {
       exports: [provider],
     };
   }
+
+
+
 }

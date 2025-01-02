@@ -27,6 +27,7 @@ export * from './Type/Input/User/Coach/GetCoachingRequestInput';
 
 //Assignment Input Start
 export * from './Type/Input/Assignment/CreateAssignmentInput';
+export * from './Type/Input/Assignment/CreateAssignmentSubmissionInput ';
 //Assignment ınput end
 
 //Class Input start

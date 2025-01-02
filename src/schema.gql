@@ -135,6 +135,28 @@ enum NotificationType {
   ERROR
 }
 
+type AssignmentSubmission {
+  _id: ID!
+  assignment: Assignment!
+  student: User!
+  description: String!
+  attachments: [String!]!
+  feedback: String
+  grade: Float
+  isLate: Boolean!
+  status: AssignmentSubmissionStatus!
+  submittedAt: DateTime!
+  gradedAt: DateTime
+  gradedBy: User
+}
+
+"""AssignmentSubmissionStatus  Status"""
+enum AssignmentSubmissionStatus {
+  SUBMITTED
+  GRADED
+  OVERDUE
+}
+
 type Query {
   gethello: String!
   me: User!
@@ -174,6 +196,7 @@ type Mutation {
   joinClassRoom(token: String!): ClassRoom!
   leaveClassRoom(classRoomId: String!): String!
   createAssignment(input: CreateAssignmentInput!): Assignment!
+  submitAssignment(input: CreateAssignmentSubmissionInput!): AssignmentSubmission!
 }
 
 input SignUpInput {
@@ -235,6 +258,12 @@ input CreateAssignmentInput {
   priority: AssignmentPriority
   visibility: AssignmentVisibility
   tags: [String!]
+  attachments: [String!]
+}
+
+input CreateAssignmentSubmissionInput {
+  assignmentId: ID!
+  description: String!
   attachments: [String!]
 }
 
