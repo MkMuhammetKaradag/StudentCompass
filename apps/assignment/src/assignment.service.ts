@@ -3,6 +3,7 @@ import {
   AssignmentDocument,
   AssignmentSubmission,
   AssignmentSubmissionDocument,
+  AssignmentSubmissionStatus,
   AssignmentType,
   ClassRoom,
   ClassRoomDocument,
@@ -192,24 +193,47 @@ export class AssignmentService {
     input: WithCurrentUserId<CreateAssignmentSubmissionInput>,
   ) {
     const { currentUserId, payload } = input;
-    const assignment = await this.assignmentModel.findOne({
-      _id: payload.assignmentId,
-      $or: [
-        {
-          assignmentType: AssignmentType.INDIVIDUAL,
+
+    const existingSubmission = await this.assignmentSubmissionModel.findOne({
+      assignment: new Types.ObjectId(payload.assignmentId),
+      student: new Types.ObjectId(currentUserId),
+    });
+
+    if (existingSubmission) {
+      this.handleError(
+        'You have already submitted this assignment',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const assignment = await this.assignmentModel
+      .findOne({
+        _id: payload.assignmentId,
+        $or: [
+          {
+            assignmentType: AssignmentType.INDIVIDUAL,
+            students: new Types.ObjectId(currentUserId),
+          },
+          {
+            assignmentType: AssignmentType.CLASS,
+            classRoom: {
+              $exists: true,
+            },
+          },
+        ],
+      })
+      .populate({
+        path: 'classRoom',
+        match: {
           students: new Types.ObjectId(currentUserId),
         },
-        {
-          assignmentType: AssignmentType.CLASS,
-          'classRoom.students': new Types.ObjectId(currentUserId),
-        },
-      ],
-    });
+        select: 'students',
+      });
+    console.log(assignment);
 
     if (!assignment) {
       this.handleError('assignment not found', HttpStatus.NOT_FOUND);
     }
-
 
     const assignmentSubmission = new this.assignmentSubmissionModel({
       assignment: new Types.ObjectId(payload.assignmentId),
@@ -218,6 +242,41 @@ export class AssignmentService {
       description: payload.description,
     });
 
+    return await assignmentSubmission.save();
+  }
+
+  async gradeAssignment(
+    input: WithCurrentUserId<{
+      submissionId: string;
+      feedback: string | null;
+      grade: number;
+    }>,
+  ) {
+    const { currentUserId, payload } = input;
+    const assignmentSubmission = await this.assignmentSubmissionModel
+      .findById(payload.submissionId)
+      .populate({
+        path: 'assignment',
+        select: 'coach',
+        model: 'Assignment',
+      });
+    if (!assignmentSubmission) {
+      this.handleError('submission not found', HttpStatus.NOT_FOUND);
+    }
+    // const assignment = await this.assignmentModel.findById(
+    //   assignmentSubmission.assignment,
+    // );
+    // if (!assignment) {
+    //   this.handleError('assignment not found', HttpStatus.NOT_FOUND);
+    // }
+    const asssignment =
+      assignmentSubmission.assignment as unknown as Assignment;
+    if (asssignment.coach.toString() !== currentUserId) {
+      this.handleError('unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+    assignmentSubmission.feedback = payload.feedback;
+    assignmentSubmission.grade = payload.grade > 0 ? payload.grade : 0;
+    assignmentSubmission.status = AssignmentSubmissionStatus.GRADED;
     return await assignmentSubmission.save();
   }
 }

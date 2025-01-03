@@ -135,4 +135,30 @@ export class AssignmentResolver {
 
     return data;
   }
+
+  @Mutation(() => AssignmentSubmission)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.ADMIN)
+  async gradeAssignment(
+    @CurrentUser() user: AuthUser,
+    @Args('submissionId') submissionId: string,
+    @Args('feedback', {
+      nullable: true,
+    })
+    feedback: string | null,
+    @Args('grade') grade: number,
+  ) {
+    const data = await this.sendCommand<AssignmentSubmission>(
+      AssignmentCommands.GRADE_ASSIGNMENT,
+      {
+        currentUserId: user._id,
+        payload: {
+          submissionId,
+          feedback,
+          grade,
+        },
+      },
+    );
+    return data;
+  }
 }

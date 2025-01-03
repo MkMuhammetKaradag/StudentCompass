@@ -80,4 +80,19 @@ export class AssignmentController {
       this.assignmentService.submitAssignment(input),
     );
   }
+
+  @MessagePattern({ cmd: AssignmentCommands.GRADE_ASSIGNMENT })
+  async gradeAssignment(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      submissionId: string;
+      feedback: string | null;
+      grade: number;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.assignmentService.gradeAssignment(input),
+    );
+  }
 }

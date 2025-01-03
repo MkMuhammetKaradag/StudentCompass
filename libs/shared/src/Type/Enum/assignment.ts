@@ -3,4 +3,5 @@ export enum AssignmentCommands {
   GET_ASSIGNMENT = 'get_assignment',
   GET_MY_ASSIGNMENTS = 'get_my_assignments',
   SUBMIT_ASSIGNMENT = 'submit_assignment',
+  GRADE_ASSIGNMENT = 'grade_assignment',
 }
