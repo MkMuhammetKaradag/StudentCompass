@@ -197,7 +197,8 @@ type Mutation {
   leaveClassRoom(classRoomId: String!): String!
   createAssignment(input: CreateAssignmentInput!): Assignment!
   submitAssignment(input: CreateAssignmentSubmissionInput!): AssignmentSubmission!
-  gradeAssignment(submissionId: String!, feedback: String, grade: Float!): AssignmentSubmission!
+  gradeAssignment(input: GradeAssignmentInput!): AssignmentSubmission!
+  getAssignmentSubmissions(assignmentId: String!): [AssignmentSubmission!]!
 }
 
 input SignUpInput {
@@ -266,6 +267,12 @@ input CreateAssignmentSubmissionInput {
   assignmentId: ID!
   description: String!
   attachments: [String!]
+}
+
+input GradeAssignmentInput {
+  submissionId: String!
+  feedback: String
+  grade: Float!
 }
 
 type Subscription {

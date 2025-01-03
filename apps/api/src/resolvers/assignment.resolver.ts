@@ -7,6 +7,7 @@ import {
   CreateAssignmentInput,
   CreateAssignmentSubmissionInput,
   CurrentUser,
+  GradeAssignmentInput,
   PUB_SUB,
   RolesGuard,
   UserRole,
@@ -107,7 +108,6 @@ export class AssignmentResolver {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.COACH, UserRole.ADMIN, UserRole.STUDENT)
   async getMyAssignments(@CurrentUser() user: AuthUser): Promise<Assignment[]> {
-    console.log('sdsd');
     const data = await this.sendCommand<Assignment[]>(
       AssignmentCommands.GET_MY_ASSIGNMENTS,
       {
@@ -141,21 +141,31 @@ export class AssignmentResolver {
   @Roles(UserRole.COACH, UserRole.ADMIN)
   async gradeAssignment(
     @CurrentUser() user: AuthUser,
-    @Args('submissionId') submissionId: string,
-    @Args('feedback', {
-      nullable: true,
-    })
-    feedback: string | null,
-    @Args('grade') grade: number,
+    @Args('input') input: GradeAssignmentInput,
   ) {
     const data = await this.sendCommand<AssignmentSubmission>(
       AssignmentCommands.GRADE_ASSIGNMENT,
       {
         currentUserId: user._id,
+        payload: input,
+      },
+    );
+    return data;
+  }
+
+  @Mutation(() => [AssignmentSubmission])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.ADMIN)
+  async getAssignmentSubmissions(
+    @Args('assignmentId') assignmentId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<AssignmentSubmission> {
+    const data = await this.sendCommand<AssignmentSubmission>(
+      AssignmentCommands.GET_ASSIGNMENT_SUBMMISSIONS,
+      {
+        currentUserId: user._id,
         payload: {
-          submissionId,
-          feedback,
-          grade,
+          assignmentId,
         },
       },
     );

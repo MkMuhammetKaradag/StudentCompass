@@ -9,6 +9,7 @@ import {
   ClassRoomDocument,
   CreateAssignmentInput,
   CreateAssignmentSubmissionInput,
+  GradeAssignmentInput,
   User,
   UserDocument,
   WithCurrentUserId,
@@ -103,17 +104,86 @@ export class AssignmentService {
 
   async getAssignment(input: WithCurrentUserId<{ assignmentId: string }>) {
     const { currentUserId, payload } = input;
+
     const assignment = await this.assignmentModel
-      .findOne({
-        _id: new Types.ObjectId(payload.assignmentId),
-        // coach: currentUserId,
-      })
-      .populate({
-        path: 'students',
-        select: '_id userName profilePhoto ',
-        model: 'User',
-      });
+      .aggregate([
+        // İlk olarak ID'ye göre ödevi bul
+        {
+          $match: {
+            _id: new Types.ObjectId(payload.assignmentId),
+          },
+        },
+
+        // ClassRoom'u join et
+        {
+          $lookup: {
+            from: 'classrooms', // classroom collection adı
+            localField: 'classRoom',
+            foreignField: '_id',
+            as: 'classRoom',
+          },
+        },
+        {
+          $unwind: {
+            path: '$classRoom',
+            preserveNullAndEmptyArrays: true, // CLASS olmayan ödevler için
+          },
+        },
+        {
+          $lookup: {
+            from: 'users', // user collection adı
+            localField: 'students',
+            foreignField: '_id',
+            as: 'studentsData',
+          },
+        },
+
+        // Ödev tipine göre kontrol
+        {
+          $match: {
+            $or: [
+              {
+                coach: new Types.ObjectId(currentUserId),
+              },
+              {
+                assignmentType: AssignmentType.INDIVIDUAL,
+                students: new Types.ObjectId(currentUserId),
+              },
+              {
+                assignmentType: AssignmentType.CLASS,
+                'classRoom.students': new Types.ObjectId(currentUserId),
+              },
+            ],
+          },
+        },
+
+        // Sadece ihtiyacımız olan alanları seç
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            description: 1,
+            assignmentType: 1,
+            'classRoom.students': 1,
+
+            studentsData: {
+              _id: 1,
+              profilePhoto: 1,
+              userName: 1,
+              // Diğer ihtiyaç duyulan user alanları
+            },
+          },
+        },
+      ])
+      .then((results) => results[0] || null);
     console.log(assignment);
+    if (!assignment) {
+      this.handleError(
+        'Assignment not found or access denied',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    assignment.students = assignment.studentsData;
     return assignment;
   }
 
@@ -207,28 +277,60 @@ export class AssignmentService {
     }
 
     const assignment = await this.assignmentModel
-      .findOne({
-        _id: payload.assignmentId,
-        $or: [
-          {
-            assignmentType: AssignmentType.INDIVIDUAL,
-            students: new Types.ObjectId(currentUserId),
+      .aggregate([
+        // İlk olarak ID'ye göre ödevi bul
+        {
+          $match: {
+            _id: new Types.ObjectId(payload.assignmentId),
           },
-          {
-            assignmentType: AssignmentType.CLASS,
-            classRoom: {
-              $exists: true,
-            },
-          },
-        ],
-      })
-      .populate({
-        path: 'classRoom',
-        match: {
-          students: new Types.ObjectId(currentUserId),
         },
-        select: 'students',
-      });
+
+        // ClassRoom'u join et
+        {
+          $lookup: {
+            from: 'classrooms', // classroom collection adı
+            localField: 'classRoom',
+            foreignField: '_id',
+            as: 'classRoom',
+          },
+        },
+
+        // Array'i tekil dokümana çevir
+        {
+          $unwind: {
+            path: '$classRoom',
+            preserveNullAndEmptyArrays: true, // CLASS olmayan ödevler için
+          },
+        },
+
+        // Ödev tipine göre kontrol
+        {
+          $match: {
+            $or: [
+              {
+                assignmentType: AssignmentType.INDIVIDUAL,
+                students: new Types.ObjectId(currentUserId),
+              },
+              {
+                assignmentType: AssignmentType.CLASS,
+                'classRoom.students': new Types.ObjectId(currentUserId),
+              },
+            ],
+          },
+        },
+
+        // Sadece ihtiyacımız olan alanları seç
+        {
+          $project: {
+            _id: 1,
+            assignmentType: 1,
+            'classRoom.students': 1,
+            students: 1,
+            // diğer ihtiyacınız olan alanlar...
+          },
+        },
+      ])
+      .then((results) => results[0] || null);
     console.log(assignment);
 
     if (!assignment) {
@@ -245,13 +347,7 @@ export class AssignmentService {
     return await assignmentSubmission.save();
   }
 
-  async gradeAssignment(
-    input: WithCurrentUserId<{
-      submissionId: string;
-      feedback: string | null;
-      grade: number;
-    }>,
-  ) {
+  async gradeAssignment(input: WithCurrentUserId<GradeAssignmentInput>) {
     const { currentUserId, payload } = input;
     const assignmentSubmission = await this.assignmentSubmissionModel
       .findById(payload.submissionId)
@@ -263,12 +359,7 @@ export class AssignmentService {
     if (!assignmentSubmission) {
       this.handleError('submission not found', HttpStatus.NOT_FOUND);
     }
-    // const assignment = await this.assignmentModel.findById(
-    //   assignmentSubmission.assignment,
-    // );
-    // if (!assignment) {
-    //   this.handleError('assignment not found', HttpStatus.NOT_FOUND);
-    // }
+
     const asssignment =
       assignmentSubmission.assignment as unknown as Assignment;
     if (asssignment.coach.toString() !== currentUserId) {
@@ -278,5 +369,71 @@ export class AssignmentService {
     assignmentSubmission.grade = payload.grade > 0 ? payload.grade : 0;
     assignmentSubmission.status = AssignmentSubmissionStatus.GRADED;
     return await assignmentSubmission.save();
+  }
+  async getAssignmentSubmissions(
+    input: WithCurrentUserId<{
+      assignmentId: string;
+    }>,
+  ) {
+    const { currentUserId, payload } = input;
+    const assignmentSubmissions =
+      await this.assignmentSubmissionModel.aggregate([
+        {
+          $match: {
+            assignment: new Types.ObjectId(payload.assignmentId),
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'student',
+            foreignField: '_id',
+            as: 'student',
+          },
+        },
+        {
+          $unwind: {
+            path: '$student', // 'student' dizisini açıyoruz
+            preserveNullAndEmptyArrays: true, // Eğer öğrenci verisi yoksa null bırak
+          },
+        },
+        {
+          $lookup: {
+            from: 'assignments',
+            localField: 'assignment',
+            foreignField: '_id',
+            as: 'assignment',
+          },
+        },
+        {
+          $unwind: {
+            path: '$assignment',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $match: {
+            'assignment.coach': new Types.ObjectId(currentUserId),
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            grade: 1,
+            feedback: 1,
+            status: 1,
+            student: {
+              _id: 1,
+              profilePhoto: 1,
+              userName: 1,
+            },
+            // assignment: 1,
+          },
+        },
+      ]);
+
+    console.log(assignmentSubmissions);
+
+    return assignmentSubmissions;
   }
 }

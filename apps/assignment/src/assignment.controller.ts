@@ -4,6 +4,7 @@ import {
   AssignmentCommands,
   CreateAssignmentInput,
   CreateAssignmentSubmissionInput,
+  GradeAssignmentInput,
   SharedService,
   WithCurrentUserId,
 } from '@app/shared';
@@ -85,14 +86,23 @@ export class AssignmentController {
   async gradeAssignment(
     @Ctx() context: RmqContext,
     @Payload()
-    input: WithCurrentUserId<{
-      submissionId: string;
-      feedback: string | null;
-      grade: number;
-    }>,
+    input: WithCurrentUserId<GradeAssignmentInput>,
   ) {
     return this.handleMessage(context, () =>
       this.assignmentService.gradeAssignment(input),
+    );
+  }
+  @MessagePattern({ cmd: AssignmentCommands.GET_ASSIGNMENT_SUBMMISSIONS })
+  async getAssignmentSubmissions(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      assignmentId: string;
+    }>,
+  ) {
+    console.log('first');
+    return this.handleMessage(context, () =>
+      this.assignmentService.getAssignmentSubmissions(input),
     );
   }
 }
