@@ -5,4 +5,5 @@ export enum AssignmentCommands {
   SUBMIT_ASSIGNMENT = 'submit_assignment',
   GRADE_ASSIGNMENT = 'grade_assignment',
   GET_ASSIGNMENT_SUBMMISSIONS = 'get_assignment_submissions',
+  GET_MY_ASSIGNMENT_SUBMISSIONS = 'get_my_assignment_submissions',
 }

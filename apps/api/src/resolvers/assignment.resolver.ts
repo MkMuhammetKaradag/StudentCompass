@@ -171,4 +171,19 @@ export class AssignmentResolver {
     );
     return data;
   }
+
+  @Mutation(() => [AssignmentSubmission])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ADMIN)
+  async getMyAssignmentSubmissions(
+    @CurrentUser() user: AuthUser,
+  ): Promise<AssignmentSubmission> {
+    const data = await this.sendCommand<AssignmentSubmission>(
+      AssignmentCommands.GET_MY_ASSIGNMENT_SUBMISSIONS,
+      {
+        currentUserId: user._id,
+      },
+    );
+    return data;
+  }
 }

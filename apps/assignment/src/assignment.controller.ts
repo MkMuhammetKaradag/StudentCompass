@@ -105,4 +105,15 @@ export class AssignmentController {
       this.assignmentService.getAssignmentSubmissions(input),
     );
   }
+
+  @MessagePattern({ cmd: AssignmentCommands.GET_MY_ASSIGNMENT_SUBMISSIONS })
+  async getMyAssignmentSubmissions(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId,
+  ) {
+    return this.handleMessage(context, () =>
+      this.assignmentService.getMyAssignmentSubmissions(input),
+    );
+  }
 }

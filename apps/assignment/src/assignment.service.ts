@@ -436,4 +436,12 @@ export class AssignmentService {
 
     return assignmentSubmissions;
   }
+
+  async getMyAssignmentSubmissions(input: WithCurrentUserId) {
+    const currentUserId = input.currentUserId;
+    const assignmentSubmissions = await this.assignmentSubmissionModel.find({
+      student: new Types.ObjectId(currentUserId),
+    });
+    return assignmentSubmissions;
+  }
 }

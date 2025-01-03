@@ -199,6 +199,7 @@ type Mutation {
   submitAssignment(input: CreateAssignmentSubmissionInput!): AssignmentSubmission!
   gradeAssignment(input: GradeAssignmentInput!): AssignmentSubmission!
   getAssignmentSubmissions(assignmentId: String!): [AssignmentSubmission!]!
+  getMyAssignmentSubmissions: [AssignmentSubmission!]!
 }
 
 input SignUpInput {
