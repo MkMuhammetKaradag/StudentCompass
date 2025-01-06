@@ -52,29 +52,23 @@ export class ClassService {
     const classroom = new this.classRoomModel({
       name: payload.name,
       description: payload.description,
-      coach: new Types.ObjectId(currentUserId),
+      coachs: new Types.ObjectId(currentUserId),
     });
 
     return await classroom.save();
   }
 
-  async createJoinLink(
-    input: WithCurrentUserId<CreateClassRoomJoinLinkInput>,
-    // currentUserId: string,
-    // classRoomId: string,
-    // duration: number,
-  ) {
-    // Sınıfın var olup olmadığını kontrol et
+  async createJoinLink(input: WithCurrentUserId<CreateClassRoomJoinLinkInput>) {
     const {
       currentUserId,
-      payload: { classRoomId, duration },
+      payload: { classRoomId, duration, type },
     } = input;
     const currentUserIdObjetId = new Types.ObjectId(currentUserId);
     const classRoom = await this.classRoomModel.findById(classRoomId);
     if (!classRoom) {
       this.handleError('ClassRoom not found', HttpStatus.NOT_FOUND);
     }
-    if (classRoom.coach.toString() !== currentUserId) {
+    if (!classRoom.coachs.includes(new Types.ObjectId(currentUserId))) {
       this.handleError(
         'You are not the coach of this class',
         HttpStatus.FORBIDDEN,
@@ -88,6 +82,7 @@ export class ClassService {
       classRoom: new Types.ObjectId(classRoomId),
       token,
       expiresAt: new Date(Date.now() + duration * 60 * 1000), // Süreyi dk olarak belirle
+      type,
     });
 
     return joinLink.save();
@@ -120,7 +115,7 @@ export class ClassService {
 
       this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
         senderId: currentUserId,
-        recipientIds: [classRoom.coach],
+        recipientIds: classRoom.coachs.map((coachId) => coachId.toString()),
         message: `${currentUserId}, ${classRoom.name} sınıfına katıldı. Katılım tarihi: ${new Date(Date.now()).toLocaleString('en-US')}.`,
         notificationType: NotificationType.INFO,
       });

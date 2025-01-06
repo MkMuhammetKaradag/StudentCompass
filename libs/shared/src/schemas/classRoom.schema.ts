@@ -15,15 +15,15 @@ export class ClassRoom {
 
   @Prop({ required: true })
   @Field()
-  name: string; // Sınıf adı (örneğin Matematik, Türkçe)
+  name: string;
 
   @Prop({ required: true })
   @Field()
   description: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: [Types.ObjectId], ref: 'User', required: true })
   @Field(() => User)
-  coach: Types.ObjectId; // Sınıfı oluşturan koçun ID'si
+  coachs: Types.ObjectId[];
 
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
   @Field(() => [User])

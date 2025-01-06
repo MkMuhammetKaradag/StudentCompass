@@ -59,7 +59,7 @@ type ClassRoom {
   _id: ID!
   name: String!
   description: String!
-  coach: User!
+  coachs: User!
   students: [User!]!
   assignments: [Assignment!]!
   createdAt: String!
@@ -248,6 +248,13 @@ input CreateClassInput {
 input CreateClassRoomJoinLinkInput {
   duration: Float! = 10
   classRoomId: String!
+  type: ClassRoomJoinLinkType
+}
+
+"""ClassRoomJoinLink Type"""
+enum ClassRoomJoinLinkType {
+  COACH
+  STUDENT
 }
 
 input CreateAssignmentInput {

@@ -59,20 +59,17 @@ export class AssignmentService {
     );
   }
 
-  // studentIds.filter((studentId) =>
-  //   coachStudents.some(
-  //     (coachStudent) => coachStudent._id.toString() === studentId,
-  //   ),
-  // );
-  // }
   async createAssignment(input: WithCurrentUserId<CreateAssignmentInput>) {
     const { currentUserId, payload } = input;
 
     if (payload.assignmentType === AssignmentType.CLASS && payload.classRoom) {
       const classRoom = await this.classRoomModel.findById(payload.classRoom);
 
-      if (!classRoom || classRoom.coach.toString() !== currentUserId) {
-        throw new Error('Geçersiz sınıf');
+      if (
+        !classRoom ||
+        !classRoom.coachs.includes(new Types.ObjectId(currentUserId))
+      ) {
+        this.handleError('Invalid class', HttpStatus.BAD_REQUEST);
       }
       const assignment = new this.assignmentModel({
         ...payload,
@@ -89,8 +86,8 @@ export class AssignmentService {
       );
 
       // Eğer hiçbir öğrenci geçerli değilse hata döndür
-      if (payload.students.length === 0) {
-        throw new Error('Geçerli öğrenci bulunamadı');
+      if (validStudents.length === 0) {
+        this.handleError('No valid students found', HttpStatus.BAD_REQUEST);
       }
       const assignment = new this.assignmentModel({
         ...payload,
@@ -99,7 +96,7 @@ export class AssignmentService {
       });
       return await assignment.save();
     }
-    throw new Error('Geçersiz öğrenci');
+    this.handleError('No valid students found', HttpStatus.BAD_REQUEST);
   }
 
   async getAssignment(input: WithCurrentUserId<{ assignmentId: string }>) {
@@ -176,7 +173,6 @@ export class AssignmentService {
         },
       ])
       .then((results) => results[0] || null);
-    console.log(assignment);
     if (!assignment) {
       this.handleError(
         'Assignment not found or access denied',
