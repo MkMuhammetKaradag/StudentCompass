@@ -3,12 +3,14 @@ import {
   ClassRoomDocument,
   ClassRoomJoinLink,
   ClassRoomJoinLinkDocument,
+  ClassRoomJoinLinkType,
   CreateClassInput,
   CreateClassRoomJoinLinkInput,
   NotificationCommands,
   NotificationDocument,
   NotificationType,
   PUB_SUB,
+  UserRole,
   WithCurrentUserId,
 } from '@app/shared';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
@@ -91,11 +93,12 @@ export class ClassService {
   async joinClassRoom(
     input: WithCurrentUserId<{
       token: string;
+      userRoles: UserRole[];
     }>,
   ) {
     const {
       currentUserId,
-      payload: { token },
+      payload: { token, userRoles },
     } = input;
     const currentUserObjetId = new Types.ObjectId(currentUserId);
 
@@ -110,18 +113,61 @@ export class ClassService {
       this.handleError('ClassRoome not Found', HttpStatus.NOT_FOUND);
     }
 
-    if (!classRoom.students.includes(currentUserObjetId)) {
-      classRoom.students.push(currentUserObjetId);
+    const isStudent = classRoom.students.includes(currentUserObjetId);
+    const isCoach = classRoom.coachs.includes(currentUserObjetId);
 
-      this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
-        senderId: currentUserId,
-        recipientIds: classRoom.coachs.map((coachId) => coachId.toString()),
-        message: `${currentUserId}, ${classRoom.name} sınıfına katıldı. Katılım tarihi: ${new Date(Date.now()).toLocaleString('en-US')}.`,
-        notificationType: NotificationType.INFO,
-      });
+    if (
+      joinLink.type === ClassRoomJoinLinkType.STUDENT &&
+      userRoles.includes(UserRole.STUDENT)
+    ) {
+      if (isCoach) {
+        this.handleError(
+          'User is already a coach in this class and cannot join as a student',
+          HttpStatus.FORBIDDEN,
+        );
+      }
 
-      await classRoom.save();
+      if (!isStudent) {
+        classRoom.students.push(currentUserObjetId);
+
+        // Bildirim gönder
+        this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
+          senderId: currentUserId,
+          recipientIds: classRoom.coachs.map((coachId) => coachId.toString()),
+          message: `${currentUserId}, ${classRoom.name} sınıfına öğrenci olarak katıldı. Katılım tarihi: ${new Date(Date.now()).toLocaleString('en-US')}.`,
+          notificationType: NotificationType.INFO,
+        });
+      }
+    } else if (
+      joinLink.type === ClassRoomJoinLinkType.COACH &&
+      userRoles.includes(UserRole.COACH)
+    ) {
+      if (isStudent) {
+        this.handleError(
+          'User is already a student in this class and cannot join as a coach',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      if (!isCoach) {
+        classRoom.coachs.push(currentUserObjetId);
+
+        // Bildirim gönder
+        this.notificationEmitEvent(NotificationCommands.SEND_NOTIFICATION, {
+          senderId: currentUserId,
+          recipientIds: classRoom.students.map((studentId) =>
+            studentId.toString(),
+          ),
+          message: `${currentUserId}, ${classRoom.name} sınıfına koç olarak katıldı. Katılım tarihi: ${new Date(Date.now()).toLocaleString('en-US')}.`,
+          notificationType: NotificationType.INFO,
+        });
+      }
+    } else {
+      this.handleError('Invalid join link type', HttpStatus.BAD_REQUEST);
     }
+
+    // Değişiklikleri kaydet
+    await classRoom.save();
 
     return classRoom;
   }

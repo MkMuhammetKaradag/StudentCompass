@@ -5,6 +5,7 @@ import {
   CreateClassInput,
   CreateClassRoomJoinLinkInput,
   SharedService,
+  UserRole,
   WithCurrentUserId,
 } from '@app/shared';
 import {
@@ -62,6 +63,7 @@ export class ClassController {
     @Payload()
     input: WithCurrentUserId<{
       token: string;
+      userRoles: UserRole[];
     }>,
   ) {
     return this.handleMessage(context, () =>

@@ -101,7 +101,7 @@ export class ClassRoomeResolver {
   }
   @Mutation(() => ClassRoom)
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.STUDENT)
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
   async joinClassRoom(
     @Args('token') token: string,
     @CurrentUser() user: AuthUser,
@@ -112,6 +112,7 @@ export class ClassRoomeResolver {
         currentUserId: user._id,
         payload: {
           token: token,
+          userRoles: user.roles,
         },
       },
     );
