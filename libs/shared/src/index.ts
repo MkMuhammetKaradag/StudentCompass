@@ -32,6 +32,10 @@ export * from './Type/Input/Assignment/GradeAssignmentInput';
 //WeeklyPlan Input Start
 export * from './Type/Input/Assignment/WeeklyPlan/CreateWeeklyPlanInput';
 //WeeklyPlan Input End
+
+//Task Input Start
+export * from './Type/Input/Assignment/Task/CreateTaskInput';
+//Task Input End
 //Assignment ınput end
 
 //Class Input start
@@ -49,6 +53,7 @@ export * from './Type/Enum/class';
 export * from './Type/Enum/assignment';
 export * from './Type/request/user';
 export * from './Type/Enum/WeeklyPlan';
+export * from './Type/Enum/Task';
 //Type End
 
 //Module

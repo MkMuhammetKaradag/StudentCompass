@@ -22,6 +22,7 @@ import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
 import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
 import { AssignmentResolver } from './resolvers/assignment.resolver';
 import { WeeklyPlanResolver } from './resolvers/weeklyPlan.resolver';
+import { TaskResolver } from './resolvers/task.resolver';
 @Module({
   imports: [
     RedisModule,
@@ -31,9 +32,12 @@ import { WeeklyPlanResolver } from './resolvers/weeklyPlan.resolver';
     SharedModule.registerRmq('EMAIL_SERVICE', 'EMAIL'),
     SharedModule.registerRmq('CLASSROOME_SERVICE', 'CLASSROOME'),
     SharedModule.registerRmq('ASSIGNMENT_SERVICE', 'ASSIGNMENT', false),
+    SharedModule.registerRmq('WEEKLY_PLAN_SERVICE', 'TASK', false),
+    SharedModule.registerRmq('TASK_SERVICE', 'WEEKLY_PLAN', false),
     SharedModule.registerRpcClient('ASSIGNMENT_SERVICE', 'ASSIGNMENT'),
+    SharedModule.registerRpcClient('WEEKLY_PLAN_SERVICE', 'WEEKLY_PLAN'),
+    SharedModule.registerRpcClient('TASK_SERVICE', 'TASK'),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
-    SharedModule.registerRmq('WEEKLY_PLAN_SERVICE', 'WEEKLY_PLAN'),
     SharedModule.registerBroadcastExchange(),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule],
@@ -126,6 +130,7 @@ import { WeeklyPlanResolver } from './resolvers/weeklyPlan.resolver';
     ClassRoomeResolver,
     AssignmentResolver,
     WeeklyPlanResolver,
+    TaskResolver,
   ],
 })
 export class AppModule {}

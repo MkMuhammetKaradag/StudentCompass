@@ -25,6 +25,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BroadcastController } from './broadcast.controller';
 import { WeeklyPlanController } from './weeklyPlan/weeklyPlan.controller';
 import { WeeklyPlanService } from './weeklyPlan/weeklyPlan.service';
+import { TaskService } from './task/task.service';
+import { TaskController } from './task/task.controller';
 
 @Module({
   imports: [
@@ -74,10 +76,12 @@ import { WeeklyPlanService } from './weeklyPlan/weeklyPlan.service';
     AssignmentController,
     BroadcastController,
     WeeklyPlanController,
+    TaskController,
   ],
   providers: [
     AssignmentService,
     WeeklyPlanService,
+    TaskService,
     BroadcastConsumerService,
     {
       provide: 'SharedServiceInterface',

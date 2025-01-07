@@ -112,6 +112,28 @@ enum AssignmentVisibility {
   TEAM
 }
 
+type Task {
+  _id: ID!
+  weeklyPlan: ID!
+  student: ID
+  classRoom: ID
+  coach: ID!
+  day: String!
+  startTime: String!
+  endTime: String!
+  taskType: String!
+  description: String!
+  status: TaskStatus!
+}
+
+"""Task Status"""
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
 type SignUpObject {
   activationToken: String!
 }
@@ -155,28 +177,6 @@ enum AssignmentSubmissionStatus {
   SUBMITTED
   GRADED
   OVERDUE
-}
-
-type Task {
-  _id: ID!
-  weeklyPlan: ID!
-  student: ID
-  classRoom: ID
-  coach: ID!
-  day: String!
-  startTime: String!
-  endTime: String!
-  taskType: String!
-  description: String!
-  status: TaskStatus!
-}
-
-"""Task Status"""
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  REVIEW
-  DONE
 }
 
 type WeeklyPlan {
@@ -233,6 +233,7 @@ type Mutation {
   getAssignmentSubmissions(assignmentId: String!): [AssignmentSubmission!]!
   getMyAssignmentSubmissions: [AssignmentSubmission!]!
   createWeeklyPlan(input: CreateWeeklyPlanInput!): WeeklyPlan!
+  createTask(input: CreateTaskInput!): Task!
 }
 
 input SignUpInput {
@@ -321,6 +322,18 @@ input CreateWeeklyPlanInput {
   classRoom: ID
   repeat: Boolean! = false
   repeatUntil: DateTime
+}
+
+input CreateTaskInput {
+  weeklyPlan: ID!
+  student: ID
+  classRoom: ID
+  day: String!
+  startTime: String!
+  endTime: String!
+  taskType: String!
+  description: String!
+  status: TaskStatus = TODO
 }
 
 type Subscription {

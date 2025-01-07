@@ -1,14 +1,14 @@
 import {
   AuthGuard,
   AuthUser,
-  CreateWeeklyPlanInput,
+  CreateTaskInput,
   CurrentUser,
   PUB_SUB,
   RedisService,
   RolesGuard,
+  Task,
+  TaskCommands,
   UserRole,
-  WeeklyPlan,
-  WeeklyPlanCommands,
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
@@ -21,14 +21,14 @@ import { firstValueFrom } from 'rxjs';
 import { GraphQLError } from 'graphql';
 import { Roles } from '@app/shared/common/decorators/roles.decorator';
 
-@Resolver('weeklyPlan')
-export class WeeklyPlanResolver {
+@Resolver('task')
+export class TaskResolver {
   constructor(
-    @Inject('WEEKLY_PLAN_SERVICE')
-    private readonly weeklyPlanService: ClientProxy,
+    @Inject('TASK_SERVICE')
+    private readonly taskService: ClientProxy,
 
-    @Inject('ASSIGNMENT_SERVICE_RPC')
-    private readonly weeklyPlanRpcService: ClientProxy,
+    @Inject('TASK_SERVICE_RPC')
+    private readonly taskRpcService: ClientProxy,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
   private handleError(
@@ -44,14 +44,9 @@ export class WeeklyPlanResolver {
       },
     });
   }
-  private async sendCommand<T>(
-    cmd: WeeklyPlanCommands,
-    payload: any,
-  ): Promise<T> {
+  private async sendCommand<T>(cmd: TaskCommands, payload: any): Promise<T> {
     try {
-      return await firstValueFrom<T>(
-        this.weeklyPlanService.send({ cmd }, payload),
-      );
+      return await firstValueFrom<T>(this.taskService.send({ cmd }, payload));
     } catch (error) {
       this.handleError(
         'An error occurred during the request.',
@@ -61,13 +56,10 @@ export class WeeklyPlanResolver {
     }
   }
 
-  private async sendRpcCommand<T>(
-    cmd: WeeklyPlanCommands,
-    payload: any,
-  ): Promise<T> {
+  private async sendRpcCommand<T>(cmd: TaskCommands, payload: any): Promise<T> {
     try {
       return await firstValueFrom<T>(
-        this.weeklyPlanRpcService.send({ cmd }, payload),
+        this.taskRpcService.send({ cmd }, payload),
       );
     } catch (error) {
       this.handleError(
@@ -77,19 +69,16 @@ export class WeeklyPlanResolver {
       );
     }
   }
-  @Mutation(() => WeeklyPlan)
+  @Mutation(() => Task)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.COACH)
-  async createWeeklyPlan(
-    @Args('input') input: CreateWeeklyPlanInput,
+  async createTask(
+    @Args('input') input: CreateTaskInput,
     @CurrentUser() user: AuthUser,
-  ): Promise<WeeklyPlan> {
-    return this.sendRpcCommand<WeeklyPlan>(
-      WeeklyPlanCommands.CREATE_WEEKLY_PLAN,
-      {
-        currentUserId: user._id,
-        payload: input,
-      },
-    );
+  ): Promise<Task> {
+    return this.sendRpcCommand<Task>(TaskCommands.CREATE_TASK, {
+      currentUserId: user._id,
+      payload: input,
+    });
   }
 }

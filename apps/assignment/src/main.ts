@@ -10,8 +10,10 @@ async function bootstrap() {
   // const port = configService.get('ASSIGNMENT_PORT');
   app.connectMicroservice(sharedService.getRmqOptions('ASSIGNMENT', false));
   app.connectMicroservice(sharedService.getRmqOptions('WEEKLY_PLAN', false));
+  app.connectMicroservice(sharedService.getRmqOptions('TASK', false));
   app.connectMicroservice(sharedService.getRpcRmqOptions('ASSIGNMENT'));
   app.connectMicroservice(sharedService.getRpcRmqOptions('WEEKLY_PLAN'));
+  app.connectMicroservice(sharedService.getRpcRmqOptions('TASK'));
   app.connectMicroservice(sharedService.getRmqOptions('BROADCAST'));
 
   app.startAllMicroservices();
