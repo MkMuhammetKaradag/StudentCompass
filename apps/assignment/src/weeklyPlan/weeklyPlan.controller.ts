@@ -1,7 +1,17 @@
 import { Controller, Inject } from '@nestjs/common';
 import { WeeklyPlanService } from './weeklyPlan.service';
-import { MessagePattern, RmqContext } from '@nestjs/microservices';
-import { SharedService, WeeklyPlaneCommands } from '@app/shared';
+import {
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
+import {
+  CreateWeeklyPlanInput,
+  SharedService,
+  WeeklyPlanCommands,
+  WithCurrentUserId,
+} from '@app/shared';
 
 @Controller()
 export class WeeklyPlanController {
@@ -23,8 +33,14 @@ export class WeeklyPlanController {
     }
   }
 
-  @MessagePattern({ cmd: WeeklyPlaneCommands.CREATE_WEEKLY_PLAN })
-  async createWeeklyPlan(): Promise<any> {
-    return this.weekleyPlanService.createWeeklyPlan();
+  @MessagePattern({ cmd: WeeklyPlanCommands.CREATE_WEEKLY_PLAN })
+  async createWeeklyPlan(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<CreateWeeklyPlanInput>,
+  ): Promise<any> {
+    return this.handleMessage(context, () =>
+      this.weekleyPlanService.createWeeklyPlan(input),
+    );
   }
 }

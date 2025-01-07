@@ -21,6 +21,7 @@ import { NotificationResolver } from './resolvers/notification.resolver';
 import { ClassRoomeResolver } from './resolvers/classRoome.resolver';
 import { BroadcastPublisherService } from '@app/shared/services/broadcast.publisher.service';
 import { AssignmentResolver } from './resolvers/assignment.resolver';
+import { WeeklyPlanResolver } from './resolvers/weeklyPlan.resolver';
 @Module({
   imports: [
     RedisModule,
@@ -32,6 +33,7 @@ import { AssignmentResolver } from './resolvers/assignment.resolver';
     SharedModule.registerRmq('ASSIGNMENT_SERVICE', 'ASSIGNMENT', false),
     SharedModule.registerRpcClient('ASSIGNMENT_SERVICE', 'ASSIGNMENT'),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
+    SharedModule.registerRmq('WEEKLY_PLAN_SERVICE', 'WEEKLY_PLAN'),
     SharedModule.registerBroadcastExchange(),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule],
@@ -123,6 +125,7 @@ import { AssignmentResolver } from './resolvers/assignment.resolver';
     NotificationResolver,
     ClassRoomeResolver,
     AssignmentResolver,
+    WeeklyPlanResolver,
   ],
 })
 export class AppModule {}

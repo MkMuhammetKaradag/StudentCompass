@@ -33,7 +33,7 @@ export class WeeklyPlan {
 
   @Prop({ type: Date, default: null })
   @Field({ nullable: true })
-  repeatUntil: Date; // Plan tekrar ediyorsa bitiş tarihi
+  repeatUntil: string; // Plan tekrar ediyorsa bitiş tarihi
 }
 
 export const WeeklyPlanSchema = SchemaFactory.createForClass(WeeklyPlan);

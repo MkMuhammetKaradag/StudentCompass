@@ -179,6 +179,16 @@ enum TaskStatus {
   DONE
 }
 
+type WeeklyPlan {
+  _id: ID!
+  student: ID
+  classRoom: ID
+  coach: ID!
+  tasks: [Task!]!
+  repeat: Boolean!
+  repeatUntil: String
+}
+
 type Query {
   gethello: String!
   me: User!
@@ -222,6 +232,7 @@ type Mutation {
   gradeAssignment(input: GradeAssignmentInput!): AssignmentSubmission!
   getAssignmentSubmissions(assignmentId: String!): [AssignmentSubmission!]!
   getMyAssignmentSubmissions: [AssignmentSubmission!]!
+  createWeeklyPlan(input: CreateWeeklyPlanInput!): WeeklyPlan!
 }
 
 input SignUpInput {
@@ -303,6 +314,13 @@ input GradeAssignmentInput {
   submissionId: String!
   feedback: String
   grade: Float!
+}
+
+input CreateWeeklyPlanInput {
+  student: ID
+  classRoom: ID
+  repeat: Boolean! = false
+  repeatUntil: DateTime
 }
 
 type Subscription {

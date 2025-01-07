@@ -29,6 +29,9 @@ export * from './Type/Input/User/Coach/GetCoachingRequestInput';
 export * from './Type/Input/Assignment/CreateAssignmentInput';
 export * from './Type/Input/Assignment/CreateAssignmentSubmissionInput ';
 export * from './Type/Input/Assignment/GradeAssignmentInput';
+//WeeklyPlan Input Start
+export * from './Type/Input/Assignment/WeeklyPlan/CreateWeeklyPlanInput';
+//WeeklyPlan Input End
 //Assignment ınput end
 
 //Class Input start
@@ -45,7 +48,7 @@ export * from './Type/Enum/user';
 export * from './Type/Enum/class';
 export * from './Type/Enum/assignment';
 export * from './Type/request/user';
-export * from './Type/Enum/WeeklyPlane';
+export * from './Type/Enum/WeeklyPlan';
 //Type End
 
 //Module
