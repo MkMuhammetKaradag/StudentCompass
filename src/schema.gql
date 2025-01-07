@@ -157,6 +157,28 @@ enum AssignmentSubmissionStatus {
   OVERDUE
 }
 
+type Task {
+  _id: ID!
+  weeklyPlan: ID!
+  student: ID
+  classRoom: ID
+  coach: ID!
+  day: String!
+  startTime: String!
+  endTime: String!
+  taskType: String!
+  description: String!
+  status: TaskStatus!
+}
+
+"""Task Status"""
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
 type Query {
   gethello: String!
   me: User!

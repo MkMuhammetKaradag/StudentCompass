@@ -45,6 +45,7 @@ export * from './Type/Enum/user';
 export * from './Type/Enum/class';
 export * from './Type/Enum/assignment';
 export * from './Type/request/user';
+export * from './Type/Enum/WeeklyPlane';
 //Type End
 
 //Module
@@ -62,6 +63,8 @@ export * from './schemas/classRoom.schema';
 export * from './schemas/classRoomJoinLink.schema';
 export * from './schemas/assignment.schema';
 export * from './schemas/assignmentSubmission.schema';
+export * from './schemas/weeklyPlan.schema';
+export * from './schemas/task.schema';
 //Schema End
 
 //Common
