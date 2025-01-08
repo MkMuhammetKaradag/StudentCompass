@@ -43,4 +43,28 @@ export class WeeklyPlanController {
       this.weekleyPlanService.createWeeklyPlan(input),
     );
   }
+  @MessagePattern({ cmd: WeeklyPlanCommands.GET_WEEKLY_PLAN })
+  async getWeeklyPlan(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      weeklyPlanId?: string ;
+      classRoomId?: string;
+    }>,
+  ): Promise<any> {
+    return this.handleMessage(context, () =>
+      this.weekleyPlanService.getWeeklyPlan(input),
+    );
+  }
+
+  @MessagePattern({ cmd: WeeklyPlanCommands.GET_MY_WEEKLY_PLANS })
+  async getMyWeeklyPlans(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId,
+  ): Promise<any> {
+    return this.handleMessage(context, () =>
+      this.weekleyPlanService.getMyWeeklyPlans(input),
+    );
+  }
 }

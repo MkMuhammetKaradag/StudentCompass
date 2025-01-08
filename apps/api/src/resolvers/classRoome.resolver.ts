@@ -56,11 +56,23 @@ export class ClassRoomeResolver {
     }
   }
 
-  @Query(() => String)
+  @Query(() => ClassRoom)
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.USER)
-  async getClass(@CurrentUser() user: AuthUser) {
-    return 'Class';
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
+  async getClassRoom(
+    @Args('classRoomId') classRoomId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<ClassRoom>(
+      ClassCommands.GET_CLASS_ROOM,
+      {
+        currentUserId: user._id,
+        payload: {
+          classRoomId,
+        },
+      },
+    );
+    return data;
   }
 
   @Mutation(() => ClassRoom)
@@ -75,8 +87,6 @@ export class ClassRoomeResolver {
       currentUserId: user._id,
       payload: input,
     });
-    console.log('dat');
-    console.log(data);
     return data;
   }
 
@@ -139,4 +149,7 @@ export class ClassRoomeResolver {
 
     return data;
   }
+
+
+
 }

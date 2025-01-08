@@ -12,7 +12,7 @@ import {
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, Payload } from '@nestjs/microservices';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 
 import { Logger } from 'winston';
@@ -89,6 +89,35 @@ export class WeeklyPlanResolver {
       {
         currentUserId: user._id,
         payload: input,
+      },
+    );
+  }
+
+  @Query(() => WeeklyPlan)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.STUDENT, UserRole.ADMIN)
+  async getWeeklyPlan(
+    @Args('weeklyPlanId', { nullable: true }) weeklyPlanId: string,
+    @Args('classRoomId', { nullable: true }) classRoomId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<WeeklyPlan> {
+    return this.sendRpcCommand<WeeklyPlan>(WeeklyPlanCommands.GET_WEEKLY_PLAN, {
+      currentUserId: user._id,
+      payload: {
+        weeklyPlanId,
+        classRoomId,
+      },
+    });
+  }
+
+  @Query(() => [WeeklyPlan])
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH, UserRole.STUDENT, UserRole.ADMIN)
+  async getMyWeeklyPlans(@CurrentUser() user: AuthUser): Promise<WeeklyPlan[]> {
+    return this.sendRpcCommand<WeeklyPlan[]>(
+      WeeklyPlanCommands.GET_MY_WEEKLY_PLANS,
+      {
+        currentUserId: user._id,
       },
     );
   }

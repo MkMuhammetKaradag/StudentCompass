@@ -198,9 +198,11 @@ type Query {
   getCoach: [User!]!
   getCoachedStudents: [User!]!
   getNotification: [Notification!]!
-  getClass: String!
+  getClassRoom(classRoomId: String!): ClassRoom!
   getAssignment(assignmentId: String!): Assignment!
   getMyAssignments: [Assignment!]!
+  getWeeklyPlan(weeklyPlanId: String, classRoomId: String): WeeklyPlan!
+  getMyWeeklyPlans: [WeeklyPlan!]!
 }
 
 input GetMyCoachingRequestInput {

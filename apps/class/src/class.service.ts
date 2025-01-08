@@ -48,6 +48,31 @@ export class ClassService {
   private notificationEmitEvent(cmd: string, payload: any) {
     this.notificationServiceClient.emit(cmd, payload);
   }
+
+  async getClassRoom(input: WithCurrentUserId<{ classRoomId: string }>) {
+    const {
+      currentUserId,
+      payload: { classRoomId },
+    } = input;
+    const currentUserObjetId = new Types.ObjectId(currentUserId);
+
+    const classRoom = await this.classRoomModel.findById(classRoomId);
+    if (!classRoom) {
+      this.handleError('ClassRoom not found', HttpStatus.NOT_FOUND);
+    }
+
+    const isStudent = classRoom.students.includes(currentUserObjetId);
+    const isCoach = classRoom.coachs.includes(currentUserObjetId);
+    if (!isStudent && !isCoach) {
+      this.handleError(
+        'You are not a student or coach in this class',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return classRoom;
+  }
+
   async createClass(input: WithCurrentUserId<CreateClassInput>) {
     const { currentUserId, payload } = input;
 

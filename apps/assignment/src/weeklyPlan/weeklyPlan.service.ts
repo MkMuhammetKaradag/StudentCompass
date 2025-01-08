@@ -69,23 +69,45 @@ export class WeeklyPlanService {
           HttpStatus.FORBIDDEN,
         );
       }
+
+      const existingPlan = await this.weeklyPlanModel.findOne({
+        student: new Types.ObjectId(student),
+        coach: new Types.ObjectId(currentUserId), // Aynı koç tarafından atanmış mı kontrolü
+      });
+
+      if (existingPlan) {
+        this.handleError(
+          'You have already created a weekly plan for this student.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     // Classroom için doğrulama
     if (classRoom) {
-      const classroom = await this.classRoomModel.findById(classRoom);
-      if (!classroom) {
+      const dbclassroom = await this.classRoomModel.findById(classRoom);
+      if (!dbclassroom) {
         this.handleError('Classroom not found', HttpStatus.NOT_FOUND);
       }
 
       // Kullanıcının sınıfta koç olup olmadığını kontrol ediyoruz
-      const isUserCoach = classroom.coachs.some(
+      const isUserCoach = dbclassroom.coachs.some(
         (coach) => coach.toString() === currentUserId,
       );
       if (!isUserCoach) {
         this.handleError(
           'You are not allowed to create a plan for this classroom.',
           HttpStatus.FORBIDDEN,
+        );
+      }
+
+      const existingPlan = await this.weeklyPlanModel.findOne({
+        classRoom: new Types.ObjectId(classRoom),
+      });
+      if (existingPlan) {
+        this.handleError(
+          'A weekly plan already exists for this classroom.',
+          HttpStatus.BAD_REQUEST,
         );
       }
     }
@@ -100,11 +122,61 @@ export class WeeklyPlanService {
     const weeklyPlan = new this.weeklyPlanModel({
       repeat,
       repeatUntil: formattedRepeatUntil,
-      classRoom: new Types.ObjectId(classRoom) || null,
-      student: new Types.ObjectId(student) || null,
+      classRoom: classRoom ? new Types.ObjectId(classRoom) : null,
+      student: student ? new Types.ObjectId(student) : null,
       coach: new Types.ObjectId(currentUserId),
     });
 
     return weeklyPlan.save();
+  }
+
+  async getWeeklyPlan(
+    input: WithCurrentUserId<{
+      weeklyPlanId?: string;
+      classRoomId?: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { weeklyPlanId, classRoomId },
+    } = input;
+    if (!weeklyPlanId && !classRoomId) {
+      this.handleError(
+        'Either weeklyPlanId or classRoomId is required.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const weeklyPlan = await this.weeklyPlanModel.findOne({
+      $or: [
+        { _id: new Types.ObjectId(weeklyPlanId) },
+        { classRoom: new Types.ObjectId(classRoomId) },
+      ],
+    });
+    if (!weeklyPlan) {
+      this.handleError('WeeklyPlan not found', HttpStatus.NOT_FOUND);
+    }
+    const isNotAllowed =
+      (!weeklyPlan.student ||
+        weeklyPlan.student.toString() !== currentUserId) &&
+      (!weeklyPlan.classRoom ||
+        weeklyPlan.classRoom.toString() !== classRoomId) &&
+      weeklyPlan.coach.toString() !== currentUserId;
+
+    if (isNotAllowed) {
+      this.handleError(
+        'You are not allowed to access this plan.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    return weeklyPlan;
+  }
+
+  async getMyWeeklyPlans(input: WithCurrentUserId) {
+    const { currentUserId } = input;
+    const weeklyPlans = await this.weeklyPlanModel.find({
+      student: new Types.ObjectId(currentUserId),
+      // $or: [{ student: currentUserId }, { coach: currentUserId }],
+    });
+    return weeklyPlans;
   }
 }

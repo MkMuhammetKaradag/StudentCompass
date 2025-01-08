@@ -46,6 +46,17 @@ export class ClassController {
     );
   }
 
+  @MessagePattern({ cmd: ClassCommands.GET_CLASS_ROOM })
+  async getClassRoom(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{ classRoomId: string }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.classService.getClassRoom(input),
+    );
+  }
+
   @MessagePattern({ cmd: ClassCommands.CREATE_CLASS_JOIN_LINK })
   async createClassRoomeJoinLink(
     @Ctx() context: RmqContext,
