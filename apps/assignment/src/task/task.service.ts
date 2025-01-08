@@ -72,6 +72,25 @@ export class TaskService {
       );
     }
 
+    const overlappingTask = await this.taskModel.findOne({
+      weeklyPlan: new Types.ObjectId(weeklyPlan),
+      day: day,
+      $and: [
+        {
+          startTime: { $lt: endTime },
+          endTime: { $gt: startTime },
+        },
+      ],
+    });
+    console.log(overlappingTask);
+
+    if (overlappingTask) {
+      this.handleError(
+        `A task already exists for the same day and time range: ${day} ${startTime} - ${endTime}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     if (student) {
       const user = await this.userModel.findById(currentUserId);
       if (!user) {
