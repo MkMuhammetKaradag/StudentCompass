@@ -168,6 +168,12 @@ export class WeeklyPlanService {
         HttpStatus.FORBIDDEN,
       );
     }
+    await weeklyPlan.populate({
+      path: 'tasks',
+      // select: '_id day',
+      model: 'Task',
+    });
+
     return weeklyPlan;
   }
 
