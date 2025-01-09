@@ -238,9 +238,16 @@ type Chat {
   messages: [Message!]!
   chatName: String
   isDeleted: Boolean!
+  type: ChatType!
   deletedAt: String
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+"""Chat  Type"""
+enum ChatType {
+  DIRECT
+  CLASSROOM
 }
 
 type Query {

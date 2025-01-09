@@ -6,20 +6,20 @@ import { Message } from './message.schema';
 
 export type ChatDocument = Chat & Document;
 
-export enum MetadataType {
+export enum ChatType {
   DIRECT = 'direct',
   CLASSROOM = 'classRoom',
 }
-registerEnumType(MetadataType, {
-  name: 'MetadataType',
-  description: 'Chat Metadata Type',
+registerEnumType(ChatType, {
+  name: 'ChatType',
+  description: 'Chat  Type',
 });
 
 export interface IChatMetadata {
   createdAt: Date;
   lastActivity: Date;
   participantCount: number;
-  type: MetadataType;
+  type: ChatType;
 }
 @Schema({ _id: false })
 @ObjectType()
@@ -36,9 +36,9 @@ export class ChatMetadata {
   @Field()
   participantCount: number;
 
-  @Prop({ type: String, enum: MetadataType })
-  @Field(() => MetadataType)
-  type: MetadataType;
+  @Prop({ type: String, enum: ChatType })
+  @Field(() => ChatType)
+  type: ChatType;
 }
 
 @Schema({ timestamps: true })
@@ -66,6 +66,10 @@ export class Chat {
   @Prop({ default: false })
   @Field()
   isDeleted: boolean;
+
+  @Prop({ required: true, enum: ChatType })
+  @Field(() => ChatType)
+  type: ChatType;
 
   //   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   //   @Field(() => User)

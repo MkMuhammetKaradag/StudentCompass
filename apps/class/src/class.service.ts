@@ -1,4 +1,6 @@
 import {
+  ChatCommands,
+  ChatType,
   ClassRoom,
   ClassRoomDocument,
   ClassRoomJoinLink,
@@ -29,6 +31,8 @@ export class ClassService {
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
     @Inject('NOTIFICATION_SERVICE')
     private readonly notificationServiceClient: ClientProxy,
+    @Inject('CHAT_SERVICE')
+    private readonly chatServiceClient: ClientProxy,
   ) {}
   private handleError(
     message: string,
@@ -48,7 +52,9 @@ export class ClassService {
   private notificationEmitEvent(cmd: string, payload: any) {
     this.notificationServiceClient.emit(cmd, payload);
   }
-
+  private chatEmitEvent(cmd: string, payload: any) {
+    this.chatServiceClient.emit(cmd, payload);
+  }
   async getClassRoom(input: WithCurrentUserId<{ classRoomId: string }>) {
     const {
       currentUserId,
@@ -80,6 +86,12 @@ export class ClassService {
       name: payload.name,
       description: payload.description,
       coachs: new Types.ObjectId(currentUserId),
+    });
+
+    this.chatEmitEvent(ChatCommands.CREATE_CHAT_CLASSROOM, {
+      classRoomId: classroom._id,
+      adminId: currentUserId,
+      type: ChatType.CLASSROOM,
     });
 
     return await classroom.save();

@@ -31,6 +31,9 @@ export class SharedModule {
         const HOST = configService.get<string>('RABBITMQ_HOST');
         const QUEUE = configService.get<string>(`RABBITMQ_${queueName}_QUEUE`);
         // const URI = configService.get<string>('RABBITMQ_URI');
+
+        const RETRY_QUEUE = `${QUEUE}_retry`;
+        const DEAD_LETTER_EXCHANGE = `${QUEUE}_dlx`;
         return ClientProxyFactory.create({
           transport: Transport.RMQ,
           options: {
@@ -41,6 +44,10 @@ export class SharedModule {
 
             queueOptions: {
               durable: true,
+              arguments: {
+                'x-dead-letter-exchange': DEAD_LETTER_EXCHANGE,
+                'x-dead-letter-routing-key': RETRY_QUEUE,
+              },
             },
           },
         });
@@ -61,7 +68,9 @@ export class SharedModule {
         const USER = configService.get<string>('RABBITMQ_USER');
         const PASS = configService.get<string>('RABBITMQ_PASS');
         const HOST = configService.get<string>('RABBITMQ_HOST');
-        const QUEUE = configService.get<string>(`RABBITMQ_${queueName}_RPC_QUEUE`);
+        const QUEUE = configService.get<string>(
+          `RABBITMQ_${queueName}_RPC_QUEUE`,
+        );
 
         return ClientProxyFactory.create({
           transport: Transport.RMQ,
@@ -72,7 +81,7 @@ export class SharedModule {
               durable: false,
               autoDelete: true,
               expires: 1000,
-              messageTtl: 1000
+              messageTtl: 1000,
             },
             noAssert: true,
           },
@@ -112,7 +121,4 @@ export class SharedModule {
       exports: [provider],
     };
   }
-
-
-
 }

@@ -28,6 +28,10 @@ import { BroadcastConsumerService } from '@app/shared/services/broadcast.consume
     SharedModule,
     SharedModule.registerBroadcastExchange(),
     SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
+
+    SharedModule.registerRmq('CHAT_SERVICE', 'CHAT'),
+    SharedModule.registerRpcClient('CHAT_SERVICE', 'CHAT'),
+    
     MongoDBModule.forRoot('CLASSROOME', 'classRoome'),
 
     MongooseModule.forFeature(

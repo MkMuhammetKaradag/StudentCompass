@@ -54,6 +54,7 @@ export * from './Type/Enum/assignment';
 export * from './Type/request/user';
 export * from './Type/Enum/WeeklyPlan';
 export * from './Type/Enum/Task';
+export * from './Type/Enum/chat';
 //Type End
 
 //Module

@@ -12,6 +12,7 @@ import {
   MongoDBModule,
   PubSubModule,
   SharedModule,
+  SharedService,
   User,
   UserSchema,
 } from '@app/shared';
@@ -43,6 +44,13 @@ import { BroadcastController } from './broadcast.controller';
     ),
   ],
   controllers: [ChatController, BroadcastController],
-  providers: [ChatService, BroadcastConsumerService],
+  providers: [
+    ChatService,
+    BroadcastConsumerService,
+    {
+      provide: 'SharedServiceInterface',
+      useClass: SharedService,
+    },
+  ],
 })
 export class ChatModule {}
