@@ -73,6 +73,9 @@ export * from './schemas/assignment.schema';
 export * from './schemas/assignmentSubmission.schema';
 export * from './schemas/weeklyPlan.schema';
 export * from './schemas/task.schema';
+export * from './schemas/chat.schema';
+export * from './schemas/message.schema';
+export * from './schemas/mediaContent.schema';
 //Schema End
 
 //Common

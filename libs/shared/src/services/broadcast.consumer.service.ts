@@ -15,9 +15,9 @@ export const SERVICE_BINDINGS = {
     ROUTING_KEYS.CHAT_MESSAGE,
   ],
   user: [ROUTING_KEYS.USER_LIKE],
-  chat: [ROUTING_KEYS.CHAT_MESSAGE],
   classRoom: [ROUTING_KEYS.USER_NEW],
   assignment: [ROUTING_KEYS.USER_ADD_COACH],
+  chat: [ROUTING_KEYS.USER_NEW],
 } as const;
 
 @Injectable()
