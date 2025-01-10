@@ -1,6 +1,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import {
+  AddParticipantInput,
   ChatCommands,
   ChatType,
   CreateChatInput,
@@ -82,6 +83,43 @@ export class ChatController {
   ) {
     return this.handleMessage(context, () =>
       this.chatService.getMyChats(input.currentUserId),
+    );
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.LEAVE_CHAT,
+  })
+  async leaveChat(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      chatId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () => this.chatService.leaveChat(input));
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.ADD_PARTICIPANT,
+  })
+  async addParticipant(
+    @Ctx() context: RmqContext,
+    @Payload() input: WithCurrentUserId<AddParticipantInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.addParticipant(input),
+    );
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.REMOVE_PARTICIPANT,
+  })
+  async reomveParticipant(
+    @Ctx() context: RmqContext,
+    @Payload() input: WithCurrentUserId<AddParticipantInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.removeParticipant(input),
     );
   }
 }

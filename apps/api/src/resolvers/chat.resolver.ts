@@ -1,4 +1,5 @@
 import {
+  AddParticipantInput,
   AuthGuard,
   AuthUser,
   Chat,
@@ -95,6 +96,50 @@ export class ChatResolver {
         currentUserId: user._id,
       },
     );
+
+    return data;
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => String)
+  async leaveChat(
+    @Args('chatId') chatId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<String>(ChatCommands.LEAVE_CHAT, {
+      currentUserId: user._id,
+      payload: {
+        chatId,
+      },
+    });
+
+    return data;
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Chat)
+  async addParticipant(
+    @Args('input') input: AddParticipantInput,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<Chat>(ChatCommands.ADD_PARTICIPANT, {
+      currentUserId: user._id,
+      payload: input,
+    });
+
+    return data;
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Chat)
+  async removeParticipant(
+    @Args('input') input: AddParticipantInput,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<Chat>(ChatCommands.REMOVE_PARTICIPANT, {
+      currentUserId: user._id,
+      payload: input,
+    });
 
     return data;
   }

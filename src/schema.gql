@@ -309,6 +309,9 @@ type Mutation {
   createWeeklyPlan(input: CreateWeeklyPlanInput!): WeeklyPlan!
   createTask(input: CreateTaskInput!): Task!
   createChat(input: CreateChatInput!): Chat!
+  leaveChat(chatId: String!): String!
+  addParticipant(input: AddParticipantInput!): Chat!
+  removeParticipant(input: AddParticipantInput!): Chat!
 }
 
 input SignUpInput {
@@ -414,6 +417,11 @@ input CreateTaskInput {
 input CreateChatInput {
   participants: [String!]!
   chatName: String
+}
+
+input AddParticipantInput {
+  userId: String!
+  chatId: String!
 }
 
 type Subscription {

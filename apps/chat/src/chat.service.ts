@@ -46,6 +46,7 @@ export class ChatService {
         type: input.type,
         classRoomId: input.classRoomId,
         admins: new Types.ObjectId(input.adminId),
+        participants: new Types.ObjectId(input.adminId),
         chatName: input.chatName,
       });
 
@@ -252,5 +253,142 @@ export class ChatService {
     ]);
 
     return chats;
+  }
+
+  async leaveChat(
+    input: WithCurrentUserId<{
+      chatId: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { chatId },
+    } = input;
+
+    const currentUserObjectId = new Types.ObjectId(currentUserId);
+
+    // Check if the user is a participant and admin of the chat
+    const chat = await this.chatModel.findOne({
+      _id: chatId,
+      participants: { $in: [currentUserObjectId] },
+    });
+
+    if (!chat) {
+      this.handleError(
+        'You are not a participant of this chat',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const isUserAdmin = chat.admins.some((adminId) =>
+      adminId.equals(currentUserObjectId),
+    );
+
+    // Remove user from participants
+    const updatedChat = await this.chatModel.findOneAndUpdate(
+      { _id: chatId, participants: { $in: [currentUserObjectId] } },
+      { $pull: { participants: currentUserObjectId } },
+      { new: true },
+    );
+
+    if (!updatedChat) {
+      this.handleError(
+        'Failed to leave the chat',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    // If the chat has no participants left, delete it
+    if (updatedChat.participants.length === 0) {
+      updatedChat.isDeleted = true;
+      await updatedChat.save();
+      // await this.chatModel.deleteOne({ _id: chatId });
+      return 'Chat deleted because no participants left';
+    }
+
+    // If the user is an admin and no other admins exist, assign a new admin
+    if (isUserAdmin) {
+      const remainingAdmins = chat.admins.filter(
+        (adminId) => !adminId.equals(currentUserObjectId),
+      );
+
+      if (remainingAdmins.length === 0) {
+        // Select a new admin from remaining participants
+        const newAdmin = updatedChat.participants[0]; // You can use a custom logic here
+        updatedChat.admins = [newAdmin];
+        await updatedChat.save();
+      }
+    }
+
+    return 'User left chat';
+  }
+
+  async addParticipant(
+    input: WithCurrentUserId<{
+      chatId: string;
+      userId: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { chatId, userId },
+    } = input;
+    const chat = await this.chatModel.findById(chatId);
+
+    if (!chat) {
+      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (!chat.admins.some((adminId) => adminId.equals(currentUserId))) {
+      this.handleError(
+        'You are not the creator or an admin',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Check if user is already an admin
+    if (
+      chat.participants.some((participantId) => participantId.equals(userId))
+    ) {
+      this.handleError('User is already an participant', HttpStatus.FORBIDDEN);
+    }
+
+    chat.participants.push(new Types.ObjectId(userId));
+    return chat.save();
+  }
+
+  async removeParticipant(
+    input: WithCurrentUserId<{
+      chatId: string;
+      userId: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { chatId, userId },
+    } = input;
+    const chat = await this.chatModel.findById(chatId);
+
+    if (!chat) {
+      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (!chat.admins.some((adminId) => adminId.equals(currentUserId))) {
+      this.handleError(
+        'You are not the creator or an admin',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Cannot remove the creator from admins
+    if (userId == currentUserId) {
+      this.handleError('user cannot remove himself', HttpStatus.FORBIDDEN);
+    }
+
+    chat.admins = chat.admins.filter((adminId) => !adminId.equals(userId));
+    chat.participants = chat.participants.filter(
+      (participantId) => !participantId.equals(userId),
+    );
+    return chat.save();
   }
 }
