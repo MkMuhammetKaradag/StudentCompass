@@ -7,6 +7,7 @@ export * from './utils/parseCookies';
 //Type
 export * from './Type/generic';
 //Input
+
 // Auth Input
 export * from './Type/Input/Auth/SignUpInput';
 export * from './Type/Input/Auth/SignInput';
@@ -42,6 +43,16 @@ export * from './Type/Input/Assignment/Task/CreateTaskInput';
 export * from './Type/Input/Class/CreateClassInput';
 export * from './Type/Input/Class/CreateClassRoomJoinLinkInput';
 //Class Input End
+
+//Chat Input Start
+export * from './Type/Input/Chat/CreateChatInput';
+// 
+
+//Input End
+
+
+
+
 
 //Object
 export * from './Type/Object/Auth/SignUpObject';

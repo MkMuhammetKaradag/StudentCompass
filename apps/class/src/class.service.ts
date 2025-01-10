@@ -89,6 +89,7 @@ export class ClassService {
     });
 
     this.chatEmitEvent(ChatCommands.CREATE_CHAT_CLASSROOM, {
+      chatName: payload.name,
       classRoomId: classroom._id,
       adminId: currentUserId,
       type: ChatType.CLASSROOM,

@@ -236,6 +236,7 @@ type Chat {
   participants: [User!]!
   admins: [User!]!
   messages: [Message!]!
+  classRoomId: ClassRoom!
   chatName: String
   isDeleted: Boolean!
   type: ChatType!
@@ -247,6 +248,7 @@ type Chat {
 """Chat  Type"""
 enum ChatType {
   DIRECT
+  GROUP
   CLASSROOM
 }
 
@@ -297,6 +299,7 @@ type Mutation {
   getMyAssignmentSubmissions: [AssignmentSubmission!]!
   createWeeklyPlan(input: CreateWeeklyPlanInput!): WeeklyPlan!
   createTask(input: CreateTaskInput!): Task!
+  createChat(input: CreateChatInput!): Chat!
 }
 
 input SignUpInput {
@@ -397,6 +400,11 @@ input CreateTaskInput {
   taskType: String!
   description: String!
   status: TaskStatus = TODO
+}
+
+input CreateChatInput {
+  participants: [String!]!
+  chatName: String
 }
 
 type Subscription {

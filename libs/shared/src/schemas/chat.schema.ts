@@ -3,11 +3,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from './user.schema';
 import { Message } from './message.schema';
+import { ClassRoom } from './classRoom.schema';
 
 export type ChatDocument = Chat & Document;
 
 export enum ChatType {
   DIRECT = 'direct',
+  GROUP = 'group',
   CLASSROOM = 'classRoom',
 }
 registerEnumType(ChatType, {
@@ -58,6 +60,17 @@ export class Chat {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Message' }] })
   @Field(() => [Message])
   messages: Types.ObjectId[];
+
+  @Prop({
+    type: String,
+    unique: true,
+    sparse: true, // Exempts 'null' values ​​from uniqueness check
+    required: function () {
+      return this.type === ChatType.CLASSROOM;
+    },
+  })
+  @Field(() => ClassRoom)
+  classRoomId: string;
 
   @Prop({ type: String })
   @Field(() => String, { nullable: true })

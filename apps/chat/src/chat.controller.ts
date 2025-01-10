@@ -1,7 +1,19 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { ChatCommands, ChatType, SharedService } from '@app/shared';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import {
+  ChatCommands,
+  ChatType,
+  CreateChatInput,
+  SharedService,
+  WithCurrentUserId,
+} from '@app/shared';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 
 @Controller()
 export class ChatController {
@@ -29,13 +41,14 @@ export class ChatController {
     @Ctx() context: RmqContext,
     @Payload()
     input: {
+      chatName: string;
       classRoomId: string;
       adminId: string;
       type: ChatType;
     },
   ) {
     try {
-      await this.chatService.CreateChatClassRoom(input);
+      await this.chatService.createChatClassRoom(input);
       this.sharedService.acknowledgeMessage(context);
     } catch (error) {
       console.error('Error processing message:', error);
@@ -46,5 +59,17 @@ export class ChatController {
       await this.sharedService.nacknowledgeMessage(context, retryCount);
       throw error;
     }
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.CREATE_CHAT,
+  })
+  async createChat(
+    @Ctx() context: RmqContext,
+    @Payload() input: WithCurrentUserId<CreateChatInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.createChat(input),
+    );
   }
 }
