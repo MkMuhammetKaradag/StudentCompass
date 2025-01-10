@@ -46,7 +46,7 @@ export * from './Type/Input/Class/CreateClassRoomJoinLinkInput';
 
 //Chat Input Start
 export * from './Type/Input/Chat/CreateChatInput';
-// 
+//Chat Input End
 
 //Input End
 
@@ -57,6 +57,10 @@ export * from './Type/Input/Chat/CreateChatInput';
 //Object
 export * from './Type/Object/Auth/SignUpObject';
 export * from './Type/Object/Auth/SignInObject';
+//Chat
+export * from "./Type/Object/Chat/GetUserChatsObject"
+
+//  Object End
 //Enum
 export * from './Type/Enum/auth';
 export * from './Type/Enum/user';

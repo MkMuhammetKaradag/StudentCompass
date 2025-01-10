@@ -9,6 +9,7 @@ import {
   CreateChatInput,
   CurrentUser,
   GetCoachingRequestInput,
+  GetUserChatsObject,
   PUB_SUB,
   RedisService,
   ResetPasswordInput,
@@ -81,6 +82,19 @@ export class ChatResolver {
       currentUserId: user._id,
       payload: input,
     });
+
+    return data;
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => [GetUserChatsObject])
+  async getMyChats(@CurrentUser() user: AuthUser) {
+    const data = await this.sendCommand<GetUserChatsObject[]>(
+      ChatCommands.GET_MY_CHATS,
+      {
+        currentUserId: user._id,
+      },
+    );
 
     return data;
   }

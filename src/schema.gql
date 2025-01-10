@@ -138,6 +138,77 @@ type SignUpObject {
   activationToken: String!
 }
 
+type Chat {
+  _id: ID!
+  participants: [User!]!
+  admins: [User!]!
+  messages: [Message!]!
+  classRoomId: ClassRoom!
+  chatName: String
+  isDeleted: Boolean!
+  type: ChatType!
+  deletedAt: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""Chat  Type"""
+enum ChatType {
+  DIRECT
+  GROUP
+  CLASSROOM
+}
+
+type MediaContent {
+  _id: ID!
+  type: MediaType!
+  url: String!
+  thumbnail: String
+  duration: Float
+  size: Float
+  mimeType: String
+  fileName: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""Medya dosya tipleri"""
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
+
+type Message {
+  _id: ID!
+  sender: User!
+  chat: Chat!
+  type: MessageType!
+  content: String
+  media: MediaContent
+  isRead: [User!]!
+  hiddenBy: [User!]!
+  createdAt: String!
+  updatedAt: String!
+  isDeleted: Boolean!
+  deletedAt: String
+}
+
+"""Mesaj içerik tipleri"""
+enum MessageType {
+  TEXT
+  MEDIA
+}
+
+type GetUserChatsObject {
+  _id: ID!
+  participants: [User!]!
+  chatName: String
+  lastMessage: Message
+  isAdmin: Boolean!
+}
+
 type Notification {
   _id: ID!
   recipients: [ID!]!
@@ -189,69 +260,6 @@ type WeeklyPlan {
   repeatUntil: String
 }
 
-type MediaContent {
-  _id: ID!
-  type: MediaType!
-  url: String!
-  thumbnail: String
-  duration: Float
-  size: Float
-  mimeType: String
-  fileName: String
-  createdAt: String!
-  updatedAt: String!
-}
-
-"""Medya dosya tipleri"""
-enum MediaType {
-  IMAGE
-  VIDEO
-  AUDIO
-  DOCUMENT
-}
-
-type Message {
-  _id: ID!
-  sender: User!
-  chat: Chat!
-  type: MessageType!
-  content: String
-  media: MediaContent
-  isRead: [User!]!
-  hiddenBy: [User!]!
-  createdAt: String!
-  updatedAt: String!
-  isDeleted: Boolean!
-  deletedAt: String
-}
-
-"""Mesaj içerik tipleri"""
-enum MessageType {
-  TEXT
-  MEDIA
-}
-
-type Chat {
-  _id: ID!
-  participants: [User!]!
-  admins: [User!]!
-  messages: [Message!]!
-  classRoomId: ClassRoom!
-  chatName: String
-  isDeleted: Boolean!
-  type: ChatType!
-  deletedAt: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-"""Chat  Type"""
-enum ChatType {
-  DIRECT
-  GROUP
-  CLASSROOM
-}
-
 type Query {
   gethello: String!
   me: User!
@@ -266,6 +274,7 @@ type Query {
   getMyAssignments: [Assignment!]!
   getWeeklyPlan(weeklyPlanId: String, classRoomId: String): WeeklyPlan!
   getMyWeeklyPlans: [WeeklyPlan!]!
+  getMyChats: [GetUserChatsObject!]!
 }
 
 input GetMyCoachingRequestInput {

@@ -3,8 +3,10 @@ import {
   ChatDocument,
   ChatType,
   CreateChatInput,
+  MessageType,
   User,
   UserDocument,
+  UserRole,
   WithCurrentUserId,
 } from '@app/shared';
 import { HttpStatus, Injectable } from '@nestjs/common';
@@ -126,11 +128,129 @@ export class ChatService {
 
     const chat = new this.chatModel({
       chatName: payload.chatName,
-      admins: [new Types.ObjectId(currentUserId)],
+      admins:
+        chatType == ChatType.DIRECT
+          ? uniqueParticipantsObjectId
+          : [new Types.ObjectId(currentUserId)],
       // createdByUser: new Types.ObjectId(currentUserId),
       participants: uniqueParticipantsObjectId,
       type: chatType,
     });
     return await chat.save();
+  }
+
+  async getMyChats(currentUserId: string) {
+    const chats = await this.chatModel.aggregate([
+      {
+        $match: {
+          participants: new Types.ObjectId(currentUserId),
+          isDeleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'participants',
+          foreignField: '_id',
+          as: 'participants',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          let: { userId: new Types.ObjectId(currentUserId) },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$_id', '$$userId'] },
+              },
+            },
+            {
+              $project: {
+                roles: 1,
+              },
+            },
+          ],
+          as: 'currentUser',
+        },
+      },
+      {
+        $lookup: {
+          from: 'messages',
+          localField: 'messages',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $match: {
+                type: MessageType.TEXT,
+              },
+            },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'sender',
+                foreignField: '_id',
+                as: 'sender',
+              },
+            },
+            { $unwind: '$sender' },
+            {
+              $project: {
+                content: 1,
+                createdAt: 1,
+                'mediaContent.url': 1,
+                'sender._id': 1,
+              },
+            },
+          ],
+          as: 'lastMessage',
+        },
+      },
+      {
+        $project: {
+          chatName: 1,
+          admins: 1, // admins alanını koruyoruz
+          participants: {
+            $filter: {
+              input: '$participants',
+              as: 'participant',
+              cond: {
+                $ne: ['$$participant._id', new Types.ObjectId(currentUserId)],
+              },
+            },
+          },
+          lastMessage: { $arrayElemAt: ['$lastMessage', 0] },
+          isAdmin: {
+            $or: [
+              { $in: [new Types.ObjectId(currentUserId), '$admins'] },
+              {
+                $in: [
+                  UserRole.ADMIN,
+                  {
+                    $ifNull: [{ $arrayElemAt: ['$currentUser.roles', 0] }, []],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          chatName: 1,
+          'participants._id': 1,
+          'participants.status': 1,
+          'participants.userName': 1,
+          'participants.profilePhoto': 1,
+          lastMessage: 1,
+          isAdmin: 1,
+        },
+      },
+    ]);
+
+    return chats;
   }
 }

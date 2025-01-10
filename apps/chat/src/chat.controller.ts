@@ -72,4 +72,16 @@ export class ChatController {
       this.chatService.createChat(input),
     );
   }
+
+  @MessagePattern({
+    cmd: ChatCommands.GET_MY_CHATS,
+  })
+  async getMyChats(
+    @Ctx() context: RmqContext,
+    @Payload() input: WithCurrentUserId,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.getMyChats(input.currentUserId),
+    );
+  }
 }
