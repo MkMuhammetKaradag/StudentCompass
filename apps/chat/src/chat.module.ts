@@ -19,6 +19,8 @@ import {
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BroadcastController } from './broadcast.controller';
+import { MessageController } from './message/message.controller';
+import { MessageService } from './message/message.service';
 
 @Module({
   imports: [
@@ -43,9 +45,10 @@ import { BroadcastController } from './broadcast.controller';
       'chat',
     ),
   ],
-  controllers: [ChatController, BroadcastController],
+  controllers: [ChatController, BroadcastController, MessageController],
   providers: [
     ChatService,
+    MessageService,
     BroadcastConsumerService,
     {
       provide: 'SharedServiceInterface',

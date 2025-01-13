@@ -312,7 +312,7 @@ type Mutation {
   leaveChat(chatId: String!): String!
   addParticipant(input: AddParticipantInput!): Chat!
   removeParticipant(input: AddParticipantInput!): Chat!
-  sendMessage(input: SendMessageInput!): String!
+  sendMessage(input: SendMessageInput!): Message!
 }
 
 input SignUpInput {

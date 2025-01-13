@@ -2,6 +2,7 @@ import {
   AuthGuard,
   AuthUser,
   CurrentUser,
+  Message,
   MessageCommands,
   Roles,
   RolesGuard,
@@ -56,14 +57,12 @@ export class MessageResolver {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.STUDENT, UserRole.ADMIN, UserRole.COACH)
-  @Mutation(() => String)
+  @Mutation(() => Message)
   async sendMessage(
     @Args('input') input: SendMessageInput,
     @CurrentUser() user: AuthUser,
-  ): Promise<String> {
-    console.log(input);
-    return 'SEND MESSAGE';
-    const data = await this.sendCommand<String>(MessageCommands.SEND_MESSAGE, {
+  ): Promise<Message> {
+    const data = await this.sendCommand<Message>(MessageCommands.SEND_MESSAGE, {
       currentUserId: user._id,
       payload: input,
     });
