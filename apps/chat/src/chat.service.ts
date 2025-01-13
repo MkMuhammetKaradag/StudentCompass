@@ -391,4 +391,27 @@ export class ChatService {
     );
     return chat.save();
   }
+
+  async checkChatParticipant(
+    input: WithCurrentUserId<{
+      chatId: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { chatId },
+    } = input;
+    const chat = await this.chatModel.findById(chatId);
+    if (!chat) {
+      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+    }
+    if (
+      !chat.participants.some((participantId) =>
+        participantId.equals(currentUserId),
+      )
+    ) {
+      return false;
+    }
+    return true;
+  }
 }

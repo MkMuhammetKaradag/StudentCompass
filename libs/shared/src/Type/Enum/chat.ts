@@ -5,4 +5,5 @@ export enum ChatCommands {
   LEAVE_CHAT = 'leave_chat',
   ADD_PARTICIPANT = 'add_participant',
   REMOVE_PARTICIPANT = 'remove_participant',
+  CHECK_CHAT_PARTICIPANT = 'check_chat_participant',
 }

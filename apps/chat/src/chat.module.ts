@@ -30,6 +30,8 @@ import { MessageService } from './message/message.service';
     }),
     SharedModule,
     SharedModule.registerBroadcastExchange(),
+    SharedModule.registerRmq('NOTIFICATION_SERVICE', 'NOTIFICATION'),
+
     MongoDBModule.forRoot('CHAT', 'chat'),
 
     MongooseModule.forFeature(

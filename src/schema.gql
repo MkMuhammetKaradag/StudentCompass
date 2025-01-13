@@ -443,4 +443,5 @@ input MediaContentInput {
 
 type Subscription {
   userNotifications: Notification!
+  sendMessageToChat(chatId: String!): Message!
 }

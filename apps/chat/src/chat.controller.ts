@@ -122,4 +122,19 @@ export class ChatController {
       this.chatService.removeParticipant(input),
     );
   }
+
+  @MessagePattern({
+    cmd: ChatCommands.CHECK_CHAT_PARTICIPANT,
+  })
+  async checkChatParticipant(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      chatId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.checkChatParticipant(input),
+    );
+  }
 }

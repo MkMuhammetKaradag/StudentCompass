@@ -11,6 +11,7 @@ import {
   CurrentUser,
   GetCoachingRequestInput,
   GetUserChatsObject,
+  Message,
   PUB_SUB,
   RedisService,
   ResetPasswordInput,
@@ -23,7 +24,7 @@ import {
   UserRole,
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 
@@ -32,7 +33,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { firstValueFrom } from 'rxjs';
 import { GraphQLError } from 'graphql';
 import { Roles } from '@app/shared/common/decorators/roles.decorator';
-
+const SEND_MESSAGE = 'sendMessageToChat';
 @Resolver('chat')
 export class ChatResolver {
   constructor(
@@ -142,5 +143,40 @@ export class ChatResolver {
     });
 
     return data;
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
+  @Subscription(() => Message, {
+    filter: async function (payload, variables, context) {
+      const { req, res } = context;
+      if (!req?.user) {
+        this.handleError('user not found', HttpStatus.NOT_FOUND);
+      }
+
+      return payload.sendMessageToChat.chatId == variables.chatId;
+    },
+  })
+  async sendMessageToChat(
+    @Args('chatId') chatId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<boolean>(
+      ChatCommands.CHECK_CHAT_PARTICIPANT,
+      {
+        currentUserId: user._id,
+        payload: {
+          chatId,
+        },
+      },
+    );
+    if (!data) {
+      this.handleError(
+        'you arre not authorized to listen to this  chat ',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return this.pubSub.asyncIterator(SEND_MESSAGE);
   }
 }

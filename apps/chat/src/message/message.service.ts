@@ -5,14 +5,18 @@ import {
   MediaContentDocument,
   Message,
   MessageDocument,
+  NotificationCommands,
+  NotificationType,
+  PUB_SUB,
   SendMessageInput,
   User,
   UserDocument,
   WithCurrentUserId,
 } from '@app/shared';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { Payload, RpcException } from '@nestjs/microservices';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { ClientProxy, Payload, RpcException } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { Model, Types } from 'mongoose';
 
 @Injectable()
@@ -26,6 +30,11 @@ export class MessageService {
     private readonly messageModel: Model<MessageDocument>,
     @InjectModel(MediaContent.name, 'chat')
     private readonly mediaContentModel: Model<MediaContentDocument>,
+
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
+
+    @Inject('NOTIFICATION_SERVICE')
+    private readonly notificationServiceClient: ClientProxy,
   ) {}
 
   private handleError(
@@ -59,7 +68,7 @@ export class MessageService {
       return this.handleError('Chat or user not found', HttpStatus.NOT_FOUND);
     }
 
-    let mediaId: Types.ObjectId | undefined;
+    let media: MediaContent | undefined;
     if (payload.mediaContent) {
       const newMedia = new this.mediaContentModel({
         type: payload.mediaContent.type,
@@ -70,7 +79,7 @@ export class MessageService {
         mimeType: payload.mediaContent.mimeType,
       });
       const savedMedia = await newMedia.save();
-      mediaId = new Types.ObjectId(savedMedia._id);
+      media = savedMedia;
     }
 
     const newMessage = new this.messageModel({
@@ -78,7 +87,7 @@ export class MessageService {
       chat: new Types.ObjectId(payload.chatId),
       type: payload.type,
       content: payload.content,
-      media: mediaId, 
+      media: media ? media._id : null,
       isRead: [new Types.ObjectId(currentUserId)],
     });
 
@@ -88,6 +97,48 @@ export class MessageService {
       $push: { messages: newMessage._id },
     });
 
+    const messageForPublish = {
+      _id: newMessage._id,
+      type: newMessage.type,
+      content: newMessage.content,
+      chatId: chat._id,
+      sender: {
+        _id: user._id,
+        userName: user.userName,
+        profilePhoto: user.profilePhoto,
+      },
+    };
+    if (media) {
+      Object.assign(messageForPublish, { media: media });
+    }
+
+    this.pubSub.publish('sendMessageToChat', {
+      sendMessageToChat: messageForPublish,
+    });
+    const participants = chat.participants as unknown as User[];
+    const notificationInput = {
+      senderId: user._id,
+      recipientIds: participants
+        .filter(
+          (participant) =>
+            participant._id.toString() !== currentUserId.toString() &&
+            participant.status !== false,
+        )
+        .map((participant) => participant._id),
+      message: `${user.userName}  adlı kullanıcı ${chat.chatName} kanalına   messaj gonderdi`,
+
+      notificationType: NotificationType.INFO,
+    };
+
+    this.notificationEmitEvent(
+      NotificationCommands.SEND_NOTIFICATION,
+      notificationInput,
+    );
+
     return newMessage;
+  }
+
+  private notificationEmitEvent(cmd: string, payload: any) {
+    this.notificationServiceClient.emit(cmd, payload);
   }
 }
