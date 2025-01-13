@@ -47,7 +47,8 @@ export * from './Type/Input/Class/CreateClassRoomJoinLinkInput';
 //Chat Input Start
 export * from './Type/Input/Chat/CreateChatInput';
 export * from './Type/Input/Chat/AddParticipantInput';
-
+//Message input
+export * from './Type/Input/Chat/Message/SendMessageInput';
 //Chat Input End
 
 //Input End
@@ -68,6 +69,7 @@ export * from './Type/request/user';
 export * from './Type/Enum/WeeklyPlan';
 export * from './Type/Enum/Task';
 export * from './Type/Enum/chat';
+export * from './Type/Enum/message';
 //Type End
 
 //Module
@@ -95,8 +97,9 @@ export * from './schemas/mediaContent.schema';
 //Common
 export * from './common/guards/auth.guard';
 export * from './common/guards/auth.gqlguard';
-export * from './common/decorators/user.decorator';
 export * from './common/guards/role.guard';
+export * from './common/decorators/user.decorator';
+export * from './common/decorators/roles.decorator';
 //Common End
 //Models
 

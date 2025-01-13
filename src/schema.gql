@@ -134,8 +134,25 @@ enum TaskStatus {
   DONE
 }
 
-type SignUpObject {
-  activationToken: String!
+type MediaContent {
+  _id: ID!
+  type: MediaType!
+  url: String!
+  thumbnail: String
+  duration: Float
+  size: Float
+  mimeType: String
+  fileName: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""Medya dosya tipleri"""
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
 }
 
 type Chat {
@@ -159,27 +176,6 @@ enum ChatType {
   CLASSROOM
 }
 
-type MediaContent {
-  _id: ID!
-  type: MediaType!
-  url: String!
-  thumbnail: String
-  duration: Float
-  size: Float
-  mimeType: String
-  fileName: String
-  createdAt: String!
-  updatedAt: String!
-}
-
-"""Medya dosya tipleri"""
-enum MediaType {
-  IMAGE
-  VIDEO
-  AUDIO
-  DOCUMENT
-}
-
 type Message {
   _id: ID!
   sender: User!
@@ -199,6 +195,10 @@ type Message {
 enum MessageType {
   TEXT
   MEDIA
+}
+
+type SignUpObject {
+  activationToken: String!
 }
 
 type GetUserChatsObject {
@@ -312,6 +312,7 @@ type Mutation {
   leaveChat(chatId: String!): String!
   addParticipant(input: AddParticipantInput!): Chat!
   removeParticipant(input: AddParticipantInput!): Chat!
+  sendMessage(input: SendMessageInput!): String!
 }
 
 input SignUpInput {
@@ -422,6 +423,22 @@ input CreateChatInput {
 input AddParticipantInput {
   userId: String!
   chatId: String!
+}
+
+input SendMessageInput {
+  chatId: String!
+  type: MessageType!
+  content: String
+  mediaContent: MediaContentInput
+}
+
+input MediaContentInput {
+  url: String!
+  type: MediaType!
+  thumbnail: String
+  duration: Float
+  size: Float
+  mimeType: String
 }
 
 type Subscription {

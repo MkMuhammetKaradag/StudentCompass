@@ -12,7 +12,8 @@ async function bootstrap() {
 
     app.connectMicroservice(sharedService.getRmqOptions('CHAT'));
     app.connectMicroservice(sharedService.getRpcRmqOptions('CHAT'));
-
+    app.connectMicroservice(sharedService.getRmqOptions('MESSAGE'));
+    app.connectMicroservice(sharedService.getRpcRmqOptions('MESSAGE'));
     app.connectMicroservice(sharedService.getRmqOptions('BROADCAST'));
 
     app.startAllMicroservices();
