@@ -1,4 +1,5 @@
 import {
+  GetChatMessagesInput,
   Message,
   MessageCommands,
   SendMessageInput,
@@ -42,6 +43,18 @@ export class MessageController {
   ): Promise<Message> {
     return this.handleMessage(context, () =>
       this.messageService.sendMessage(input),
+    );
+  }
+
+  @MessagePattern({
+    cmd: MessageCommands.GET_CHAT_MESSAGES,
+  })
+  async getChatMessages(
+    @Ctx() context: RmqContext,
+    @Payload() input: WithCurrentUserId<GetChatMessagesInput>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.messageService.getChatMessages(input),
     );
   }
 }

@@ -49,6 +49,7 @@ export * from './Type/Input/Chat/CreateChatInput';
 export * from './Type/Input/Chat/AddParticipantInput';
 //Message input
 export * from './Type/Input/Chat/Message/SendMessageInput';
+export * from './Type/Input/Chat/Message/GetChatMessagesInput';
 //Chat Input End
 
 //Input End
@@ -58,6 +59,8 @@ export * from './Type/Object/Auth/SignUpObject';
 export * from './Type/Object/Auth/SignInObject';
 //Chat
 export * from './Type/Object/Chat/GetUserChatsObject';
+//Message
+export * from './Type/Object/Chat/Message/GetChatMessagesObject';
 
 //  Object End
 //Enum

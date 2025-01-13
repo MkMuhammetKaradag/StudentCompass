@@ -2,6 +2,8 @@ import {
   AuthGuard,
   AuthUser,
   CurrentUser,
+  GetChatMessagesInput,
+  GetChatMessagesObject,
   Message,
   MessageCommands,
   Roles,
@@ -10,7 +12,7 @@ import {
   UserRole,
 } from '@app/shared';
 import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { ClientProxy } from '@nestjs/microservices';
 import { GraphQLError } from 'graphql';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -67,6 +69,25 @@ export class MessageResolver {
       payload: input,
     });
 
+    return data;
+  }
+
+  @Query(() => GetChatMessagesObject)
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.STUDENT, UserRole.ADMIN, UserRole.COACH)
+  async getChatMessages(
+    @Args('input') input: GetChatMessagesInput,
+    @CurrentUser() user: AuthUser,
+  ): Promise<GetChatMessagesObject> {
+  
+    const data = await this.sendCommand<GetChatMessagesObject>(
+      MessageCommands.GET_CHAT_MESSAGES,
+      {
+        currentUserId: user._id,
+        payload: input,
+      },
+    );
+   
     return data;
   }
 }

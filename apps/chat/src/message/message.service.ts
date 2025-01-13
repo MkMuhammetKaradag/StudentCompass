@@ -1,6 +1,7 @@
 import {
   Chat,
   ChatDocument,
+  GetChatMessagesInput,
   MediaContent,
   MediaContentDocument,
   Message,
@@ -140,5 +141,115 @@ export class MessageService {
 
   private notificationEmitEvent(cmd: string, payload: any) {
     this.notificationServiceClient.emit(cmd, payload);
+  }
+
+  async getChatMessages(input: WithCurrentUserId<GetChatMessagesInput>) {
+    const {
+      currentUserId,
+      payload: { chatId, page, limit, extraPassValue },
+    } = input;
+
+    const chat = await this.chatModel.findById(chatId).populate('participants');
+    if (!chat) {
+      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+    }
+
+    const isParticipant = chat.participants.some((participant: any) =>
+      participant._id.equals(currentUserId),
+    );
+
+    if (!isParticipant) {
+      this.handleError(
+        'You are not authorized to view this chat',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const skip = (page - 1) * limit + extraPassValue;
+
+    const chatMessages = await this.messageModel.aggregate([
+      {
+        $match: {
+          chat: new Types.ObjectId(chatId),
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'sender',
+          foreignField: '_id',
+          as: 'sender',
+        },
+      },
+      {
+        $unwind: {
+          path: '$sender',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'mediacontents',
+          localField: 'media',
+          foreignField: '_id',
+          as: 'media',
+        },
+      },
+      {
+        $unwind: {
+          path: '$media',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        // Check if userId exists in the isRead array
+        $addFields: {
+          messageIsReaded: {
+            $cond: {
+              if: { $in: [new Types.ObjectId(currentUserId), '$isRead'] },
+              then: true,
+              else: false,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          content: 1,
+          type: 1,
+          'sender.userName': 1,
+          'sender.profilePhoto': 1,
+          'sender._id': 1,
+          'media.type': 1,
+          'media.url': 1,
+          'media._id': 1,
+          messageIsReaded: 1,
+        },
+      },
+    ]);
+
+    const totalMessages = await this.messageModel.countDocuments({
+      chat: new Types.ObjectId(chatId),
+    });
+    const pagination = {
+      messages: chatMessages,
+      currentPage: page,
+      totalPages: Math.ceil(totalMessages / limit),
+      totalMessages,
+    };
+
+    return pagination;
   }
 }

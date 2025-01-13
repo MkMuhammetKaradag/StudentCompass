@@ -209,6 +209,22 @@ type GetUserChatsObject {
   isAdmin: Boolean!
 }
 
+type ChatMessage {
+  _id: ID!
+  content: String
+  type: MessageType!
+  sender: User!
+  media: MediaContent
+  messageIsReaded: Boolean!
+}
+
+type GetChatMessagesObject {
+  messages: [ChatMessage!]!
+  totalMessages: Float!
+  totalPages: Float!
+  currentPage: Float!
+}
+
 type Notification {
   _id: ID!
   recipients: [ID!]!
@@ -275,6 +291,7 @@ type Query {
   getWeeklyPlan(weeklyPlanId: String, classRoomId: String): WeeklyPlan!
   getMyWeeklyPlans: [WeeklyPlan!]!
   getMyChats: [GetUserChatsObject!]!
+  getChatMessages(input: GetChatMessagesInput!): GetChatMessagesObject!
 }
 
 input GetMyCoachingRequestInput {
@@ -284,6 +301,13 @@ input GetMyCoachingRequestInput {
 input GetCoachingRequestInput {
   coachingId: String
   status: CoachingRequestStatus!
+}
+
+input GetChatMessagesInput {
+  chatId: String!
+  page: Float! = 1
+  limit: Float! = 10
+  extraPassValue: Float = 0
 }
 
 type Mutation {
