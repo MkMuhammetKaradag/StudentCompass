@@ -337,6 +337,8 @@ type Mutation {
   addParticipant(input: AddParticipantInput!): Chat!
   removeParticipant(input: AddParticipantInput!): Chat!
   sendMessage(input: SendMessageInput!): Message!
+  markMessagesAsRead(messageIds: [String!]!): Boolean!
+  deleteMessage(messageId: String!): Boolean!
 }
 
 input SignUpInput {

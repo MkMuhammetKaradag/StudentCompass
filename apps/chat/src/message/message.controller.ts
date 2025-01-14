@@ -57,4 +57,34 @@ export class MessageController {
       this.messageService.getChatMessages(input),
     );
   }
+
+  @MessagePattern({
+    cmd: MessageCommands.MARK_MESSAGES_AS_READ,
+  })
+  async markMessagesAsRead(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      messageIds: string[];
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.messageService.markMessagesAsRead(input),
+    );
+  }
+
+  @MessagePattern({
+    cmd: MessageCommands.DELETE_MESSAGE,
+  })
+  async deleteMessage(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      messageId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.messageService.deleteMessage(input),
+    );
+  }
 }

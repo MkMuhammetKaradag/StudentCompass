@@ -79,7 +79,6 @@ export class MessageResolver {
     @Args('input') input: GetChatMessagesInput,
     @CurrentUser() user: AuthUser,
   ): Promise<GetChatMessagesObject> {
-  
     const data = await this.sendCommand<GetChatMessagesObject>(
       MessageCommands.GET_CHAT_MESSAGES,
       {
@@ -87,7 +86,46 @@ export class MessageResolver {
         payload: input,
       },
     );
-   
+
+    return data;
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ADMIN, UserRole.COACH)
+  async markMessagesAsRead(
+    @Args('messageIds', { type: () => [String] }) messageIds: string[],
+    @CurrentUser() user: AuthUser,
+  ): Promise<Boolean> {
+    const data = await this.sendCommand<Boolean>(
+      MessageCommands.MARK_MESSAGES_AS_READ,
+      {
+        currentUserId: user._id,
+        payload: {
+          messageIds,
+        },
+      },
+    );
+
+    return data;
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ADMIN, UserRole.COACH)
+  async deleteMessage(
+    @Args('messageId') messageId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<Boolean> {
+    const data = await this.sendCommand<Boolean>(
+      MessageCommands.DELETE_MESSAGE,
+      {
+        currentUserId: user._id,
+        payload: {
+          messageId,
+        },
+      },
+    );
     return data;
   }
 }

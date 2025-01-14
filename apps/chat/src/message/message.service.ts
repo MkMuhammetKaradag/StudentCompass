@@ -171,6 +171,7 @@ export class MessageService {
       {
         $match: {
           chat: new Types.ObjectId(chatId),
+          isDeleted: false,
         },
       },
       {
@@ -251,5 +252,109 @@ export class MessageService {
     };
 
     return pagination;
+  }
+
+  async markMessagesAsRead(
+    input: WithCurrentUserId<{
+      messageIds: string[];
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { messageIds },
+    } = input;
+
+    const result = await this.messageModel
+      .aggregate([
+        {
+          $match: {
+            _id: { $in: messageIds.map((id) => new Types.ObjectId(id)) },
+          },
+        },
+        {
+          $lookup: {
+            from: 'chats',
+            localField: 'chat',
+            foreignField: '_id',
+            as: 'chatInfo',
+          },
+        },
+        {
+          $match: {
+            'chatInfo.participants': new Types.ObjectId(currentUserId),
+          },
+        },
+      ])
+      .exec();
+
+    if (result.length !== messageIds.length) {
+      this.handleError(
+        ' You are not authorized to mark these messages as read',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const updateResult = await this.messageModel.updateMany(
+      {
+        _id: { $in: messageIds },
+        isRead: { $ne: new Types.ObjectId(currentUserId) },
+      },
+      {
+        $addToSet: { isRead: new Types.ObjectId(currentUserId) },
+      },
+    );
+
+    return updateResult.modifiedCount > 0;
+  }
+
+  async deleteMessage(
+    input: WithCurrentUserId<{
+      messageId: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { messageId },
+    } = input;
+
+    const message = await this.messageModel
+      .aggregate([
+        {
+          $match: {
+            _id: new Types.ObjectId(messageId),
+          },
+        },
+        {
+          $lookup: {
+            from: 'chats',
+            localField: 'chat',
+            foreignField: '_id',
+            as: 'chatInfo',
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { 'chatInfo.admins': new Types.ObjectId(currentUserId) },
+              { sender: new Types.ObjectId(currentUserId) },
+            ],
+          },
+        },
+      ])
+      .exec();
+    if (!message.length) {
+      this.handleError(
+        'message notfound or You do not have permission to delete this message',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Soft delete - isDeleted alanını true yap
+    const updateResult = await this.messageModel.updateOne(
+      { _id: new Types.ObjectId(messageId) },
+      { $set: { isDeleted: true } },
+    );
+
+    return updateResult.modifiedCount > 0;
   }
 }
