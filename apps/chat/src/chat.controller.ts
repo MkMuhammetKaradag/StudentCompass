@@ -172,7 +172,7 @@ export class ChatController {
   }
 
   @MessagePattern({
-    cmd: ChatCommands.FREEZ_CHAT,
+    cmd: ChatCommands.FREEZE_CHAT,
   })
   async freezChat(
     @Ctx() context: RmqContext,
@@ -182,5 +182,33 @@ export class ChatController {
     }>,
   ) {
     return this.handleMessage(context, () => this.chatService.freezChat(input));
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.UNFREEZE_CHAT,
+  })
+  async unfreezeChat(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUser<{
+      chatId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.unfreezeChat(input),
+    );
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.GET_FREEZE_CHATS,
+  })
+  async getFreezeChats(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUser,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.gerFreezeChats(input),
+    );
   }
 }

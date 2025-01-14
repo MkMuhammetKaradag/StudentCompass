@@ -291,6 +291,7 @@ type Query {
   getWeeklyPlan(weeklyPlanId: String, classRoomId: String): WeeklyPlan!
   getMyWeeklyPlans: [WeeklyPlan!]!
   getMyChats: [GetUserChatsObject!]!
+  getFreezeChats: [Chat!]!
   getChatMessages(input: GetChatMessagesInput!): GetChatMessagesObject!
 }
 
@@ -338,7 +339,8 @@ type Mutation {
   removeParticipant(input: AddParticipantInput!): Chat!
   addChatAdmin(chatId: String!, userId: String!): Chat!
   removeChatAdmin(chatId: String!, userId: String!): Chat!
-  freezChat(chatId: String!): Chat!
+  freezeChat(chatId: String!): Chat!
+  unfreezeChat(chatId: String!): Chat!
   sendMessage(input: SendMessageInput!): Message!
   markMessagesAsRead(messageIds: [String!]!): Boolean!
   deleteMessage(messageId: String!): Boolean!

@@ -219,15 +219,41 @@ export class ChatResolver {
   @UseGuards(AuthGuard)
   @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
   @Mutation(() => Chat)
-  async freezChat(
+  async freezeChat(
     @Args('chatId') chatId: string,
     @CurrentUser() user: AuthUser,
   ) {
-    const data = await this.sendCommand<Chat>(ChatCommands.FREEZ_CHAT, {
+    const data = await this.sendCommand<Chat>(ChatCommands.FREEZE_CHAT, {
       currentUser: user,
       payload: {
         chatId,
       },
+    });
+    return data;
+  }
+
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
+  @Mutation(() => Chat)
+  async unfreezeChat(
+    @Args('chatId') chatId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<Chat>(ChatCommands.UNFREEZE_CHAT, {
+      currentUser: user,
+      payload: {
+        chatId,
+      },
+    });
+    return data;
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
+  @Query(() => [Chat])
+  async getFreezeChats(@CurrentUser() user: AuthUser) {
+    const data = await this.sendCommand<Chat[]>(ChatCommands.GET_FREEZE_CHATS, {
+      currentUser: user,
     });
     return data;
   }
