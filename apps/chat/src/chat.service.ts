@@ -7,6 +7,7 @@ import {
   User,
   UserDocument,
   UserRole,
+  WithCurrentUser,
   WithCurrentUserId,
 } from '@app/shared';
 import { HttpStatus, Injectable } from '@nestjs/common';
@@ -517,5 +518,30 @@ export class ChatService {
     }
 
     return result;
+  }
+
+  async freezChat(
+    input: WithCurrentUser<{
+      chatId: string;
+    }>,
+  ) {
+    const {
+      currentUser,
+      payload: { chatId },
+    } = input;
+    const isAdmin = currentUser.roles.includes(UserRole.ADMIN);
+    const chat = await this.chatModel.findOne({
+      _id: chatId,
+      $or: [
+        { admins: { $in: [new Types.ObjectId(currentUser._id)] } },
+        ...(isAdmin ? [{}] : []),
+      ],
+    });
+    if (!chat) {
+      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+    }
+    chat.isDeleted = true;
+    chat.deletedAt = new Date();
+    return chat.save();
   }
 }

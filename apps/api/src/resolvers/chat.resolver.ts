@@ -215,4 +215,20 @@ export class ChatResolver {
     });
     return data;
   }
+
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
+  @Mutation(() => Chat)
+  async freezChat(
+    @Args('chatId') chatId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<Chat>(ChatCommands.FREEZ_CHAT, {
+      currentUser: user,
+      payload: {
+        chatId,
+      },
+    });
+    return data;
+  }
 }

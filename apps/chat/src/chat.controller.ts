@@ -6,6 +6,7 @@ import {
   ChatType,
   CreateChatInput,
   SharedService,
+  WithCurrentUser,
   WithCurrentUserId,
 } from '@app/shared';
 import {
@@ -168,5 +169,18 @@ export class ChatController {
     return this.handleMessage(context, () =>
       this.chatService.removeChatAdmin(input),
     );
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.FREEZ_CHAT,
+  })
+  async freezChat(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUser<{
+      chatId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () => this.chatService.freezChat(input));
   }
 }
