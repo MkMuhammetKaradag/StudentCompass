@@ -137,4 +137,36 @@ export class ChatController {
       this.chatService.checkChatParticipant(input),
     );
   }
+
+  @MessagePattern({
+    cmd: ChatCommands.ADD_CHAT_ADMIN,
+  })
+  async addChatAdmin(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      chatId: string;
+      userId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.addChatAdmin(input),
+    );
+  }
+
+  @MessagePattern({
+    cmd: ChatCommands.REMOVE_CHAT_ADMIN,
+  })
+  async removeChatAdmin(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      chatId: string;
+      userId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.chatService.removeChatAdmin(input),
+    );
+  }
 }

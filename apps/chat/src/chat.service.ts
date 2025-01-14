@@ -380,7 +380,6 @@ export class ChatService {
       );
     }
 
-    // Cannot remove the creator from admins
     if (userId == currentUserId) {
       this.handleError('user cannot remove himself', HttpStatus.FORBIDDEN);
     }
@@ -413,5 +412,110 @@ export class ChatService {
       return false;
     }
     return true;
+  }
+
+  async addChatAdmin(
+    input: WithCurrentUserId<{
+      chatId: string;
+      userId: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { chatId, userId },
+    } = input;
+
+    const result = await this.chatModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(chatId),
+
+        participants: new Types.ObjectId(userId),
+
+        admins: {
+          $all: [new Types.ObjectId(currentUserId)],
+          $ne: new Types.ObjectId(userId),
+        },
+      },
+      {
+        $addToSet: { admins: new Types.ObjectId(userId) },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      const chat = await this.chatModel.findById(chatId);
+
+      if (!chat) {
+        this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (!chat.admins.some((adminId) => adminId.equals(currentUserId))) {
+        this.handleError('You are not an admin', HttpStatus.FORBIDDEN);
+      }
+
+      if (
+        !chat.participants.some((participantId) => participantId.equals(userId))
+      ) {
+        this.handleError(
+          'User must be a participant to become admin',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      if (chat.admins.some((adminId) => adminId.equals(userId))) {
+        this.handleError('User is already an admin', HttpStatus.FORBIDDEN);
+      }
+    }
+
+    return result;
+  }
+
+  async removeChatAdmin(
+    input: WithCurrentUserId<{
+      chatId: string;
+      userId: string;
+    }>,
+  ): Promise<ChatDocument> {
+    const {
+      currentUserId,
+      payload: { chatId, userId },
+    } = input;
+    const result = await this.chatModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(chatId),
+        admins: {
+          $in: [new Types.ObjectId(userId), new Types.ObjectId(currentUserId)],
+        },
+        'admins.1': { $exists: true },
+      },
+      {
+        $pull: { admins: new Types.ObjectId(userId) },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      const chat = await this.chatModel.findById(chatId);
+
+      if (!chat) {
+        this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (!chat.admins.some((adminId) => adminId.equals(currentUserId))) {
+        this.handleError('You are not an admin', HttpStatus.FORBIDDEN);
+      }
+      if (!chat.admins.some((adminId) => adminId.equals(userId))) {
+        this.handleError('user is  not an admin', HttpStatus.FORBIDDEN);
+      }
+      // En az 2 admin olmalı kontrolü
+      if (chat.admins.length < 2) {
+        this.handleError(
+          'Cannot remove admin. Chat must have at least 2 admins to perform admin removal.',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    }
+
+    return result;
   }
 }

@@ -179,4 +179,40 @@ export class ChatResolver {
 
     return this.pubSub.asyncIterator(SEND_MESSAGE);
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
+  @Mutation(() => Chat)
+  async addChatAdmin(
+    @Args('chatId') chatId: string,
+    @Args('userId') userId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<Chat>(ChatCommands.ADD_CHAT_ADMIN, {
+      currentUserId: user._id,
+      payload: {
+        chatId,
+        userId,
+      },
+    });
+    return data;
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN)
+  @Mutation(() => Chat)
+  async removeChatAdmin(
+    @Args('chatId') chatId: string,
+    @Args('userId') userId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<Chat>(ChatCommands.REMOVE_CHAT_ADMIN, {
+      currentUserId: user._id,
+      payload: {
+        chatId,
+        userId,
+      },
+    });
+    return data;
+  }
 }
