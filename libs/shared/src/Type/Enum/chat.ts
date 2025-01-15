@@ -11,4 +11,6 @@ export enum ChatCommands {
   FREEZE_CHAT = 'freeze_chat',
   UNFREEZE_CHAT = 'unfreeze_chat',
   GET_FREEZE_CHATS = 'get_freeze_chats',
+  ADD_PARTICIPANT_CHAT_CLASSROOM = 'add_participant_chat_classroom',
+  LEAVE_PARTICIPANT_CHAT_CLASSROOM = 'leave_participant_chat_classroom',
 }

@@ -633,4 +633,50 @@ export class ChatService {
     // .select('_id name admins isDeleted deletedAt');
     return chats;
   }
+
+  async addParticipantChatClassRoom(input: {
+    classRoomId: string;
+    currentUserId: string;
+  }) {
+    const chat = await this.chatModel.findOne({
+      classRoomId: new Types.ObjectId(input.classRoomId),
+    });
+
+    if (!chat) {
+      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (
+      chat.participants.some((participantId) =>
+        participantId.equals(input.currentUserId),
+      )
+    ) {
+      return null;
+      this.handleError('User is already an participant', HttpStatus.FORBIDDEN);
+    }
+
+    chat.participants.push(new Types.ObjectId(input.currentUserId));
+    await chat.save();
+  }
+
+  async leaveParticipantChatClassRoom(input: {
+    classRoomId: string;
+    currentUserId: string;
+  }) {
+    const chat = await this.chatModel.findOne({
+      classRoomId: new Types.ObjectId(input.classRoomId),
+    });
+
+    if (!chat) {
+      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+    }
+
+    chat.admins = chat.admins.filter(
+      (adminId) => !adminId.equals(input.currentUserId),
+    );
+    chat.participants = chat.participants.filter(
+      (participantId) => !participantId.equals(input.currentUserId),
+    );
+    await chat.save();
+  }
 }

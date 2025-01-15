@@ -93,7 +93,7 @@ export class NotificationResolver {
   }
   @ResolveField(() => User)
   async sender(@Parent() notification: Notification): Promise<User> {
-    // Notification içindeki sender ID'yi kullanarak User bilgisini UserService'den çekiyoruz
+ 
 
     const data = await firstValueFrom<User>(
       this.userService.send(

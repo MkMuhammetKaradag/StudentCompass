@@ -100,7 +100,6 @@ export class AssignmentController {
       assignmentId: string;
     }>,
   ) {
-    console.log('first');
     return this.handleMessage(context, () =>
       this.assignmentService.getAssignmentSubmissions(input),
     );

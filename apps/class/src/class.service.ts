@@ -204,7 +204,11 @@ export class ClassService {
       this.handleError('Invalid join link type', HttpStatus.BAD_REQUEST);
     }
 
-    // Değişiklikleri kaydet
+    this.chatEmitEvent(ChatCommands.ADD_PARTICIPANT_CHAT_CLASSROOM, {
+      classRoomId: classRoom._id,
+      currentUserId: currentUserId,
+    });
+
     await classRoom.save();
 
     return classRoom;
@@ -233,9 +237,12 @@ export class ClassService {
       (studentId) => studentId.toString() !== currentUserId,
     );
     await classRoom.save();
+
+    this.chatEmitEvent(ChatCommands.LEAVE_PARTICIPANT_CHAT_CLASSROOM, {
+      classRoomId: classRoom._id,
+      currentUserId: currentUserId,
+    });
+
     return 'Leave ClassRoome';
   }
-
-
-
 }

@@ -63,6 +63,50 @@ export class ChatController {
     }
   }
 
+  @EventPattern(ChatCommands.ADD_PARTICIPANT_CHAT_CLASSROOM)
+  async addParticipantChatClassRoom(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: {
+      classRoomId: string;
+      currentUserId: string;
+    },
+  ) {
+    try {
+      await this.chatService.addParticipantChatClassRoom(input);
+      this.sharedService.acknowledgeMessage(context);
+    } catch (error) {
+      console.error('Error processing message:', error);
+
+      const retryCount = context.getMessage()?.fields?.deliveryTag || 0;
+      console.log(retryCount);
+      await this.sharedService.nacknowledgeMessage(context, retryCount);
+      throw error;
+    }
+  }
+
+  @EventPattern(ChatCommands.LEAVE_PARTICIPANT_CHAT_CLASSROOM)
+  async leaveParticipantChatClassRoom(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: {
+      classRoomId: string;
+      currentUserId: string;
+    },
+  ) {
+    try {
+      await this.chatService.leaveParticipantChatClassRoom(input);
+      this.sharedService.acknowledgeMessage(context);
+    } catch (error) {
+      console.error('Error processing message:', error);
+
+      const retryCount = context.getMessage()?.fields?.deliveryTag || 0;
+      console.log(retryCount);
+      await this.sharedService.nacknowledgeMessage(context, retryCount);
+      throw error;
+    }
+  }
+
   @MessagePattern({
     cmd: ChatCommands.CREATE_CHAT,
   })
