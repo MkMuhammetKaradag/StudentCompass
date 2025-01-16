@@ -149,4 +149,42 @@ export class ClassRoomeResolver {
 
     return data;
   }
+
+  @Mutation(() => String)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH)
+  async freezeClassRoom(
+    @Args('classRoomId') classRoomId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<String>(
+      ClassCommands.FREEZE_CLASS_ROOM,
+      {
+        currentUser: user,
+        payload: {
+          classRoomId,
+        },
+      },
+    );
+    return data;
+  }
+
+  @Mutation(() => String)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.COACH)
+  async unfreezeClassRoom(
+    @Args('classRoomId') classRoomId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const data = await this.sendCommand<String>(
+      ClassCommands.UNFREEZE_CLASS_ROOM,
+      {
+        currentUser: user,
+        payload: {
+          classRoomId,
+        },
+      },
+    );
+    return data;
+  }
 }

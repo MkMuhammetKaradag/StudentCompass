@@ -6,6 +6,7 @@ import {
   CreateClassRoomJoinLinkInput,
   SharedService,
   UserRole,
+  WithCurrentUser,
   WithCurrentUserId,
 } from '@app/shared';
 import {
@@ -92,6 +93,35 @@ export class ClassController {
   ) {
     return this.handleMessage(context, () =>
       this.classService.leaveClassRoom(input),
+    );
+  }
+  @MessagePattern({
+    cmd: ClassCommands.FREEZE_CLASS_ROOM,
+  })
+  async freezeClassRoom(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.classService.freezeClassRoom(input),
+    );
+  }
+
+  @MessagePattern({
+    cmd: ClassCommands.UNFREEZE_CLASS_ROOM,
+  })
+  async unfreezeClassRoom(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.classService.unfreezeClassRoom(input),
     );
   }
 }

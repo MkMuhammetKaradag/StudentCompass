@@ -33,6 +33,14 @@ export class ClassRoom {
   @Field(() => [Assignment])
   assignments: string[]; // Sınıfa ait ödevler
 
+  @Prop({ default: false })
+  @Field()
+  isDeleted: boolean;
+
+  @Prop({ nullable: true })
+  @Field(() => String, { nullable: true })
+  deletedAt?: Date;
+
   @Field()
   createdAt: string;
 

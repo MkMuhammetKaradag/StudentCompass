@@ -62,6 +62,8 @@ type ClassRoom {
   coachs: User!
   students: [User!]!
   assignments: [Assignment!]!
+  isDeleted: Boolean!
+  deletedAt: String
   createdAt: String!
   updatedAt: String!
 }
@@ -326,6 +328,8 @@ type Mutation {
   createClassRoomJoinLink(input: CreateClassRoomJoinLinkInput!): String!
   joinClassRoom(token: String!): ClassRoom!
   leaveClassRoom(classRoomId: String!): String!
+  freezeClassRoom(classRoomId: String!): String!
+  unfreezeClassRoom(classRoomId: String!): String!
   createAssignment(input: CreateAssignmentInput!): Assignment!
   submitAssignment(input: CreateAssignmentSubmissionInput!): AssignmentSubmission!
   gradeAssignment(input: GradeAssignmentInput!): AssignmentSubmission!

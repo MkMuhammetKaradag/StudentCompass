@@ -570,6 +570,110 @@ export class ChatService {
     return result;
   }
 
+  async freezeChatEvent(
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    const {
+      currentUser,
+      payload: { classRoomId },
+    } = input;
+    const isAdmin = currentUser.roles.includes(UserRole.ADMIN);
+
+    const result = await this.chatModel.findOneAndUpdate(
+      {
+        classRoomId: new Types.ObjectId(classRoomId),
+        isDeleted: false,
+        $or: [
+          { admins: new Types.ObjectId(currentUser._id) }, // Chat admin kontrolü
+          { $expr: { $eq: [isAdmin, true] } }, // Sistem admin kontrolü
+        ],
+      },
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      // Daha detaylı hata mesajı için ek kontrol
+      const chat = await this.chatModel.findOne({
+        classRoomId: new Types.ObjectId(classRoomId),
+      });
+
+      if (!chat) {
+        this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (chat.isDeleted) {
+        this.handleError('Chat is already deleted', HttpStatus.BAD_REQUEST);
+      }
+
+      this.handleError(
+        'You do not have permission to freeze this chat',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return null;
+  }
+
+  async unfreezeChatEvent(
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    const {
+      currentUser,
+      payload: { classRoomId },
+    } = input;
+    console.log('geldi');
+    const isAdmin = currentUser.roles.includes(UserRole.ADMIN);
+    const result = await this.chatModel.findOneAndUpdate(
+      {
+        classRoomId: new Types.ObjectId(classRoomId),
+        isDeleted: true,
+        $or: [
+          { admins: new Types.ObjectId(currentUser._id) }, // Chat admin kontrolü
+          { $expr: { $eq: [isAdmin, true] } }, // Sistem admin kontrolü
+        ],
+      },
+      {
+        $set: {
+          isDeleted: false,
+          deletedAt: new Date(),
+        },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      // Daha detaylı hata mesajı için ek kontrol
+      const chat = await this.chatModel.findOne({
+        classRoomId: new Types.ObjectId(classRoomId),
+      });
+
+      if (!chat) {
+        this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (!chat.isDeleted) {
+        this.handleError('Chat is already active', HttpStatus.BAD_REQUEST);
+      }
+
+      this.handleError(
+        'You do not have permission to freeze this chat',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return result;
+  }
+
   async unfreezeChat(
     input: WithCurrentUser<{
       chatId: string;
@@ -592,7 +696,7 @@ export class ChatService {
       },
       {
         $set: {
-          isDeleted: true,
+          isDeleted: false,
           deletedAt: new Date(),
         },
       },

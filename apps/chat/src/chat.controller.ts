@@ -109,6 +109,47 @@ export class ChatController {
     }
   }
 
+  @EventPattern(ChatCommands.FREEZE_CHAT)
+  async freezeChatEvent(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    try {
+      await this.chatService.freezeChatEvent(input);
+      this.sharedService.acknowledgeMessage(context);
+    } catch (error) {
+      console.error('Error processing message:', error);
+
+      const retryCount = context.getMessage()?.fields?.deliveryTag || 0;
+      console.log(retryCount);
+      await this.sharedService.nacknowledgeMessage(context, retryCount);
+      throw error;
+    }
+  }
+
+  @EventPattern(ChatCommands.UNFREEZE_CHAT)
+  async unfreezeChatEvent(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    try {
+      await this.chatService.unfreezeChatEvent(input);
+      this.sharedService.acknowledgeMessage(context);
+    } catch (error) {
+      console.error('Error processing message:', error);
+
+      const retryCount = context.getMessage()?.fields?.deliveryTag || 0;
+      console.log(retryCount);
+      await this.sharedService.nacknowledgeMessage(context, retryCount);
+      throw error;
+    }
+  }
   @MessagePattern({
     cmd: ChatCommands.CREATE_CHAT,
   })

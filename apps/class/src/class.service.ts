@@ -8,11 +8,13 @@ import {
   ClassRoomJoinLinkType,
   CreateClassInput,
   CreateClassRoomJoinLinkInput,
+  CurrentUser,
   NotificationCommands,
   NotificationDocument,
   NotificationType,
   PUB_SUB,
   UserRole,
+  WithCurrentUser,
   WithCurrentUserId,
 } from '@app/shared';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
@@ -225,7 +227,7 @@ export class ClassService {
       payload: { classRoomId },
     } = input;
     const currentUserObjectId = new Types.ObjectId(currentUserId);
-    
+
     // Sınıfı getir ve kullanıcı türünü belirle
     const classRoom = await this.classRoomModel.findOne({
       _id: new Types.ObjectId(classRoomId),
@@ -274,5 +276,63 @@ export class ClassService {
     });
 
     return `${isCoach ? 'Coach' : 'Student'} left the classRoom successfully`;
+  }
+
+  async freezeClassRoom(
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    const classRoom = await this.classRoomModel.findOne({
+      _id: new Types.ObjectId(input.payload.classRoomId),
+      coachs: {
+        $in: [new Types.ObjectId(input.currentUser._id)],
+      },
+      isDeleted: false,
+    });
+    if (!classRoom) {
+      this.handleError('ClassRoom not found', HttpStatus.NOT_FOUND);
+    }
+    // ClassRoom silme işlemini gerçekleştirmek için
+    classRoom.isDeleted = true;
+    classRoom.deletedAt = new Date();
+    await classRoom.save();
+
+    this.chatEmitEvent(ChatCommands.FREEZE_CHAT, {
+      currentUser: input.currentUser,
+      payload: {
+        classRoomId: classRoom._id,
+      },
+    });
+    return 'deleted Class';
+  }
+
+  async unfreezeClassRoom(
+    input: WithCurrentUser<{
+      classRoomId: string;
+    }>,
+  ) {
+    const classRoom = await this.classRoomModel.findOne({
+      _id: new Types.ObjectId(input.payload.classRoomId),
+      coachs: {
+        $in: [new Types.ObjectId(input.currentUser._id)],
+      },
+      isDeleted: true,
+    });
+    if (!classRoom) {
+      this.handleError('ClassRoom not found', HttpStatus.NOT_FOUND);
+    }
+    // ClassRoom silme işlemini gerçekleştirmek için
+    classRoom.isDeleted = false;
+    classRoom.deletedAt = null;
+    await classRoom.save();
+
+    this.chatEmitEvent(ChatCommands.UNFREEZE_CHAT, {
+      currentUser: input.currentUser,
+      payload: {
+        classRoomId: classRoom._id,
+      },
+    });
+    return 'unFreeze Class';
   }
 }
