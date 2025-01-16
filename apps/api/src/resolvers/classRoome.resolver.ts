@@ -132,7 +132,7 @@ export class ClassRoomeResolver {
 
   @Mutation(() => String)
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.STUDENT)
+  @Roles(UserRole.STUDENT, UserRole.COACH)
   async leaveClassRoom(
     @Args('classRoomId') classRoomId: string,
     @CurrentUser() user: AuthUser,
@@ -149,7 +149,4 @@ export class ClassRoomeResolver {
 
     return data;
   }
-
-
-
 }

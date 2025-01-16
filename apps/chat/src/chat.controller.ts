@@ -70,6 +70,7 @@ export class ChatController {
     input: {
       classRoomId: string;
       currentUserId: string;
+      isAdmin: boolean;
     },
   ) {
     try {
@@ -92,6 +93,7 @@ export class ChatController {
     input: {
       classRoomId: string;
       currentUserId: string;
+      isAdmin: boolean;
     },
   ) {
     try {

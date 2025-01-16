@@ -633,36 +633,60 @@ export class ChatService {
     // .select('_id name admins isDeleted deletedAt');
     return chats;
   }
-
   async addParticipantChatClassRoom(input: {
     classRoomId: string;
     currentUserId: string;
+    isAdmin: boolean;
   }) {
-    const chat = await this.chatModel.findOne({
-      classRoomId: new Types.ObjectId(input.classRoomId),
-    });
+    const classRoomObjectId = new Types.ObjectId(input.classRoomId);
+    const currentUserObjectId = new Types.ObjectId(input.currentUserId);
+
+    const chat = await this.chatModel.findOneAndUpdate(
+      {
+        classRoomId: classRoomObjectId,
+        participants: { $ne: currentUserObjectId }, // Eğer katılımcı listesinde yoksa
+      },
+      {
+        $push: {
+          participants: currentUserObjectId,
+          ...(input.isAdmin && { admins: currentUserObjectId }),
+        },
+      },
+      { new: true }, // Güncellenmiş dokümanı döndürür
+    );
 
     if (!chat) {
-      this.handleError('Chat not found', HttpStatus.NOT_FOUND);
+      return this.handleError(
+        'Chat not found or user already a participant',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
-    if (
-      chat.participants.some((participantId) =>
-        participantId.equals(input.currentUserId),
-      )
-    ) {
-      return null;
-      this.handleError('User is already an participant', HttpStatus.FORBIDDEN);
-    }
-
-    chat.participants.push(new Types.ObjectId(input.currentUserId));
-    await chat.save();
+    return null;
   }
 
   async leaveParticipantChatClassRoom(input: {
     classRoomId: string;
     currentUserId: string;
+    isAdmin: boolean;
   }) {
+    const result = await this.chatModel.findOneAndUpdate(
+      {
+        classRoomId: new Types.ObjectId(input.classRoomId),
+        $or: [
+          { participants: { $ne: new Types.ObjectId(input.currentUserId) } },
+          { admins: { $ne: new Types.ObjectId(input.currentUserId) } },
+        ],
+      },
+      {
+        $pull: {
+          admins: new Types.ObjectId(input.currentUserId),
+          participants: new Types.ObjectId(input.currentUserId),
+        },
+      },
+      { new: true },
+    );
+
     const chat = await this.chatModel.findOne({
       classRoomId: new Types.ObjectId(input.classRoomId),
     });

@@ -207,6 +207,7 @@ export class ClassService {
     this.chatEmitEvent(ChatCommands.ADD_PARTICIPANT_CHAT_CLASSROOM, {
       classRoomId: classRoom._id,
       currentUserId: currentUserId,
+      isAdmin: joinLink.type === ClassRoomJoinLinkType.COACH,
     });
 
     await classRoom.save();
@@ -223,26 +224,55 @@ export class ClassService {
       currentUserId,
       payload: { classRoomId },
     } = input;
-    const currentUserObjetId = new Types.ObjectId(currentUserId);
-    // Sınıfı güncelle
+    const currentUserObjectId = new Types.ObjectId(currentUserId);
+    
+    // Sınıfı getir ve kullanıcı türünü belirle
     const classRoom = await this.classRoomModel.findOne({
-      _id: classRoomId,
-      students: { $in: [currentUserObjetId] },
+      _id: new Types.ObjectId(classRoomId),
+      $or: [
+        { students: { $in: [currentUserObjectId] } },
+        { coachs: { $in: [currentUserObjectId] } },
+      ],
     });
+
     if (!classRoom) {
-      this.handleError('ClassRoome not Found', HttpStatus.NOT_FOUND);
+      this.handleError('ClassRoom not found', HttpStatus.NOT_FOUND);
     }
 
-    classRoom.students = classRoom.students.filter(
-      (studentId) => studentId.toString() !== currentUserId,
+    // Kullanıcının bir koç olup olmadığını kontrol et
+    const isCoach = classRoom.coachs.some((coachId) =>
+      coachId.equals(currentUserObjectId),
     );
+
+    if (isCoach) {
+      // Minimum iki koç kontrolü
+      if (classRoom.coachs.length <= 1) {
+        this.handleError(
+          'At least one coach must remain in the class',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Koç listesinde kullanıcıyı kaldır
+      classRoom.coachs = classRoom.coachs.filter(
+        (coachId) => !coachId.equals(currentUserObjectId),
+      );
+    } else {
+      // Öğrenci listesinde kullanıcıyı kaldır
+      classRoom.students = classRoom.students.filter(
+        (studentId) => !studentId.equals(currentUserObjectId),
+      );
+    }
+
     await classRoom.save();
 
+    // Sohbet etkinliğini tetikle
     this.chatEmitEvent(ChatCommands.LEAVE_PARTICIPANT_CHAT_CLASSROOM, {
       classRoomId: classRoom._id,
       currentUserId: currentUserId,
+      isAdmin: isCoach,
     });
 
-    return 'Leave ClassRoome';
+    return `${isCoach ? 'Coach' : 'Student'} left the classRoom successfully`;
   }
 }
