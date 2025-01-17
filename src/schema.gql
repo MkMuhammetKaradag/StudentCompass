@@ -348,6 +348,7 @@ type Mutation {
   sendMessage(input: SendMessageInput!): Message!
   markMessagesAsRead(messageIds: [String!]!): Boolean!
   deleteMessage(messageId: String!): Boolean!
+  editMessage(messageId: String!, content: String!): Message!
 }
 
 input SignUpInput {

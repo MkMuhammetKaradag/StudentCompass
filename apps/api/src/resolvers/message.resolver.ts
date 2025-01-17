@@ -128,4 +128,22 @@ export class MessageResolver {
     );
     return data;
   }
+
+  @Mutation(() => Message)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ADMIN, UserRole.COACH)
+  async editMessage(
+    @Args('messageId') messageId: string,
+    @Args('content') content: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<Message> {
+    const data = await this.sendCommand<Message>(MessageCommands.EDIT_MESSAGE, {
+      currentUserId: user._id,
+      payload: {
+        messageId,
+        content,
+      },
+    });
+    return data;
+  }
 }

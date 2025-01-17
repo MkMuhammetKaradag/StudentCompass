@@ -357,4 +357,26 @@ export class MessageService {
 
     return updateResult.modifiedCount > 0;
   }
+
+  async editMessage(
+    input: WithCurrentUserId<{
+      messageId: string;
+      content: string;
+    }>,
+  ) {
+    const {
+      currentUserId,
+      payload: { messageId, content },
+    } = input;
+    const message = await this.messageModel.findOne({
+      _id: new Types.ObjectId(messageId),
+      sender: new Types.ObjectId(currentUserId),
+    });
+    if (!message) {
+      this.handleError('message not found', HttpStatus.NOT_FOUND);
+    }
+    // Edit message
+    message.content = content;
+    return await message.save();
+  }
 }

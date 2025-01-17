@@ -87,4 +87,19 @@ export class MessageController {
       this.messageService.deleteMessage(input),
     );
   }
+  @MessagePattern({
+    cmd: MessageCommands.EDIT_MESSAGE,
+  })
+  async editMessage(
+    @Ctx() context: RmqContext,
+    @Payload()
+    input: WithCurrentUserId<{
+      messageId: string;
+      content: string;
+    }>,
+  ) {
+    return this.handleMessage(context, () =>
+      this.messageService.editMessage(input),
+    );
+  }
 }
